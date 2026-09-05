@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="LevelConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/core/level_config.gd" id="1_level_config"]
+
+[resource]
+script = ExtResource("1_level_config")
+target_score = 10
+duration_seconds = 30.0
+spawn_interval = 0.8
+max_coins = 5
+coin_value = 1
+arena_margin = 24.0
+min_spawn_distance_from_player = 48.0

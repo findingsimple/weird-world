@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://game/main.gd" id="1_main"]
+[ext_resource type="Resource" path="res://game/core/levels/level_01.tres" id="2_level_01"]
+
+[node name="Main" type="Node"]
+script = ExtResource("1_main")
+level_config = ExtResource("2_level_01")
+
+[node name="Screen" type="Node" parent="."]

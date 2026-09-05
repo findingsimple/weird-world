@@ -1,0 +1,15 @@
+# Normalize line endings: everything Git considers text is stored with LF.
+* text=auto eol=lf
+
+# Godot files are plain text and must diff/merge as such.
+*.gd      text
+*.gdshader text
+*.tscn    text
+*.tres    text
+*.import  text
+*.uid     text
+*.cfg     text
+*.godot   text
+*.svg     text
+
+# No Git LFS: GitHub template repositories cannot include LFS objects.

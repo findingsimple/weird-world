@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Weird World icon: a gold coin. CC0 - part of the weird-world template. -->
+  <rect width="128" height="128" rx="24" fill="#2b2d42"/>
+  <circle cx="64" cy="64" r="44" fill="#b8860b"/>
+  <circle cx="64" cy="64" r="36" fill="#ffd700"/>
+  <circle cx="64" cy="64" r="28" fill="none" stroke="#b8860b" stroke-width="4"/>
+  <text x="64" y="78" font-family="monospace" font-size="40" font-weight="bold" text-anchor="middle" fill="#b8860b">C</text>
+</svg>

@@ -1,0 +1,110 @@
+# Release: release-please turns conventional commits on main into a release PR
+# (bumps version.txt, updates CHANGELOG.md). Merging that PR creates a tag + GitHub
+# Release; the build job then exports every platform from that exact tag and the
+# publish job attaches the zips.
+#
+# One-time setup in the repo: Settings > Actions > General >
+#   "Allow GitHub Actions to create and approve pull requests" = on.
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+# Never cancel a release in progress.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    name: Release PR / tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@v5
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  build:
+    name: Export all platforms
+    # Chained with `needs` on purpose: tags pushed by GITHUB_TOKEN never trigger
+    # other workflows, so an `on: push: tags` job would never run.
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    container:
+      image: barichello/godot-ci:4.7.2
+    env:
+      VERSION: ${{ needs.release-please.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Build exactly the released commit, not whatever main is by now.
+          ref: ${{ needs.release-please.outputs.tag_name }}
+          persist-credentials: false
+      - name: Install make
+        run: apt-get update -qq && apt-get install -y -qq --no-install-recommends make >/dev/null
+      - name: Check container image matches .godot-version
+        run: make version
+      - name: Make export templates visible to this user
+        run: |
+          src=/root/.local/share/godot/export_templates
+          test -d "$src" || { echo "::error::export templates not found at $src - image layout changed?"; exit 1; }
+          mkdir -p ~/.local/share/godot/export_templates
+          cp -R "$src"/. ~/.local/share/godot/export_templates/
+      - name: Stamp version into project.godot and macOS preset
+        run: |
+          sed -i "s|^config/version=.*|config/version=\"${VERSION}\"|" project.godot
+          sed -i "s|^application/short_version=.*|application/short_version=\"${VERSION}\"|" export_presets.cfg
+          sed -i "s|^application/version=.*|application/version=\"${VERSION}\"|" export_presets.cfg
+          grep -n "^config/version" project.godot
+      - name: Export
+        run: make export-all
+      - uses: actions/upload-artifact@v7
+        with:
+          name: builds
+          path: build/
+          if-no-files-found: error
+
+  publish:
+    name: Attach builds to the GitHub Release
+    needs: [release-please, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ needs.release-please.outputs.tag_name }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: builds
+          path: build
+      - name: Zip per platform
+        run: |
+          name="${GITHUB_REPOSITORY##*/}"
+          mkdir -p dist
+          (cd build/web && zip -qr "../../dist/${name}-${TAG}-web.zip" .)
+          (cd build/windows && zip -qr "../../dist/${name}-${TAG}-windows.zip" .)
+          (cd build/linux && zip -qr "../../dist/${name}-${TAG}-linux.zip" .)
+          cp build/macos/*.zip "dist/${name}-${TAG}-macos.zip"
+          ls -la dist
+      - name: Upload to the release
+        run: gh release upload "$TAG" dist/*.zip --repo "$GITHUB_REPOSITORY"

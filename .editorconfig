@@ -1,0 +1,35 @@
+# EditorConfig: https://editorconfig.org
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# GDScript uses tabs (Godot editor default, official style guide).
+[*.{gd,gdshader,gdshaderinc}]
+indent_style = tab
+max_line_length = 100
+
+[Makefile]
+indent_style = tab
+
+[*.{yml,yaml,json,toml}]
+indent_style = space
+indent_size = 2
+
+[*.py]
+indent_style = space
+indent_size = 4
+
+[*.md]
+indent_style = space
+indent_size = 2
+# Two trailing spaces are a hard line break in Markdown.
+trim_trailing_whitespace = false
+
+# Engine-serialized files: never hand-reformat.
+[*.{tscn,tres,import,godot,cfg}]
+indent_style = tab
+trim_trailing_whitespace = false

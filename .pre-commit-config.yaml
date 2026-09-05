@@ -1,0 +1,37 @@
+# pre-commit hooks: https://pre-commit.com
+# Install once with `pre-commit install` (done by scripts/setup.sh).
+# Run on everything with `pre-commit run --all-files` (CI runs exactly this).
+exclude: ^addons/
+repos:
+  - repo: https://github.com/Scony/godot-gdscript-toolkit
+    rev: "4.5.0"
+    hooks:
+      - id: gdformat
+      - id: gdlint
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: \.md$
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=512"]
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+      - id: check-case-conflict
+  # The two scripts that run with your full privileges deserve a linter too.
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1-1
+    hooks:
+      - id: shellcheck
+        files: ^scripts/.*\.sh$
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.4
+    hooks:
+      - id: ruff-check
+        files: ^scripts/.*\.py$
+      - id: ruff-format
+        files: ^scripts/.*\.py$

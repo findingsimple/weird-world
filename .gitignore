@@ -1,0 +1,39 @@
+# --- Godot (from github/gitignore Godot.gitignore, 4.x relevant parts) ---
+# Godot 4.2+ specific ignores
+~*.dll
+
+# Godot 4+ specific ignores
+.godot/
+.nomedia
+
+# Godot-specific ignores
+.import/
+export.cfg
+export_credentials.cfg
+*.tmp
+
+# Imported translations (automatically generated from CSV files)
+*.translation
+
+# Mono-specific ignores (not used here, kept so the template is safe if C# is added later)
+.mono/
+data_*/
+mono_crash.*.json
+
+# --- Project ---
+# Exported builds (make export-*)
+build/
+# Test and check output (make test / make check)
+reports/
+
+# --- Python (scripts/) ---
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# --- OS / editor noise ---
+.DS_Store
+Thumbs.db
+*.swp

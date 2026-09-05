@@ -1,0 +1,65 @@
+# Web: export the HTML5 build and publish it to GitHub Pages on every push to main.
+#
+# One-time setup in the repo: Settings > Pages > Source = "GitHub Actions".
+# The deploy job only runs for public repositories (GitHub Pages on the free plan
+# requires a public repo); the build job always runs so export breakage is caught.
+name: Web
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+# Never cancel an in-flight deployment; later runs queue behind it.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Export Web build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    # Image maintained in lockstep with Godot releases; export templates pre-installed.
+    # Keep the tag equal to .godot-version — the guard step below fails if it drifts.
+    container:
+      image: barichello/godot-ci:4.7.2
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Install make
+        run: apt-get update -qq && apt-get install -y -qq --no-install-recommends make >/dev/null
+      - name: Check container image matches .godot-version
+        run: make version
+      - name: Make export templates visible to this user
+        run: |
+          src=/root/.local/share/godot/export_templates
+          test -d "$src" || { echo "::error::export templates not found at $src - image layout changed?"; exit 1; }
+          mkdir -p ~/.local/share/godot/export_templates
+          cp -R "$src"/. ~/.local/share/godot/export_templates/
+      - name: Export Web
+        run: make export-web
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: build/web
+
+  deploy:
+    name: Deploy to GitHub Pages
+    if: github.event.repository.visibility == 'public'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

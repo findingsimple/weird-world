@@ -1,0 +1,16 @@
+{
+  "godotTools.editorPath.godot4": "/Applications/Godot.app/Contents/MacOS/Godot",
+  "godotTools.lsp.serverPort": 6005,
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.exclude": {
+    ".godot": true,
+    "build": true,
+    "reports": true
+  },
+  "[gdscript]": {
+    "editor.insertSpaces": false,
+    "editor.tabSize": 4,
+    "editor.rulers": [100]
+  }
+}

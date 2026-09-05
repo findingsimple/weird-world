@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" shape-rendering="crispEdges">
+  <!-- Coin sprite (12x12). CC0 - part of the weird-world template. -->
+  <circle cx="6" cy="6" r="5.5" fill="#b8860b"/>
+  <circle cx="6" cy="6" r="4.5" fill="#ffd700"/>
+  <rect x="5" y="3" width="2" height="6" fill="#b8860b"/>
+  <rect x="4" y="4" width="1" height="1" fill="#fff4b0"/>
+</svg>

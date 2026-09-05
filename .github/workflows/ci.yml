@@ -1,0 +1,71 @@
+# CI: lint + compile check + tests on every push to main and every pull request.
+# The test job runs exactly `make ci`; the lint job adds the pre-commit hygiene hooks
+# and checks the rename script. Run `make ci && pre-commit run --all-files` locally first.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint (pre-commit hooks) + rename script
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      # Every hook in .pre-commit-config.yaml (gdformat, gdlint, shellcheck, ruff, hygiene).
+      - uses: pre-commit/action@v3.0.1
+      - name: Unit-test the rename script
+        run: python3 scripts/test_new_game.py
+      - name: Rename smoke test (real run on a copy, no template identifiers may survive)
+        run: |
+          cp -R . /tmp/rename-smoke && cd /tmp/rename-smoke
+          python3 scripts/new_game.py --name "Ci Smoke" --repo example/ci-smoke --description "Smoke test." --force
+          # LICENSE and ASSETS.md keep crediting the template author on purpose (see TEMPLATE.md).
+          if grep -rIlE 'weird-world|coin[-_ ]?dash|findingsimple' --exclude-dir=.git --exclude-dir=addons --exclude=new_game.py --exclude=test_new_game.py --exclude=ci.yml --exclude=LICENSE --exclude=ASSETS.md . ; then
+            echo "::error::template identifiers survived the rename (see files above)"; exit 1; fi
+
+  test:
+    name: make ci (Godot headless)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Read pinned Godot version
+        id: godot
+        run: echo "version=$(cat .godot-version)" >> "$GITHUB_OUTPUT"
+      - uses: chickensoft-games/setup-godot@v2
+        with:
+          version: ${{ steps.godot.outputs.version }}
+          use-dotnet: false
+          include-templates: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install gdtoolkit (same pin as pre-commit and setup.sh)
+        run: pip install "gdtoolkit==4.5.0"
+      - name: make ci
+        run: make ci
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: reports
+          path: reports/
+          if-no-files-found: ignore
