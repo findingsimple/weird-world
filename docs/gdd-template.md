@@ -1,5 +1,9 @@
 # Game design document
 
+> **Example only.** The filled-in text below is the Coin Dash design from the
+> game-scaffolding template, kept as a model of what a finished GDD looks like. Weird World's
+> real design is [gdd.md](gdd.md); none of the numbers here apply to it.
+
 A lightweight GDD: one page that answers "what are we making and why is it fun?"
 before any code. Copy this file to `docs/gdd.md` for your game, keep it current, and
 link it from the README. The example below is filled in for Coin Dash, the small

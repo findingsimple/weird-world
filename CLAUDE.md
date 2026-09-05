@@ -8,8 +8,8 @@ shortest accurate description of how the project works — keep it true.
 **Weird World**, a Godot **4.7.2** + **GDScript** platformer: a hungry blob eats humans
 for money, stomps ghost strawberries and takes on the ghost cake boss. The design is in
 `docs/gdd.md` (milestones included); the concept book is `docs/design/`. Created from the
-`game-scaffolding` template, whose Coin Dash example (coins, clock, spawner) is still in
-place until Milestone 2 replaces coins with humans. Full docs live in `docs/`; start with
+`game-scaffolding` template; nothing of its Coin Dash example remains except the
+architecture. Full docs live in `docs/`; start with
 `docs/README.md`, `docs/architecture.md`, `docs/style-guide.md`, `docs/testing.md`.
 
 ## Commands (all via the Makefile — CI's test job runs `make ci` verbatim)
@@ -21,7 +21,7 @@ make lint                                 # gdformat --check + gdlint on game/ t
 make format                               # rewrite files with gdformat (tabs, 100 cols)
 make check                                # load + compile every script/scene; typing rules are compile errors
 make test                                 # GUT suite, headless; fails on parse errors or zero tests; JUnit -> reports/results.xml
-make test GUT_ARGS="-gselect=test_game_rules -gunit_test_name=test_add_score"   # one test
+make test GUT_ARGS="-gselect=test_game_rules -gunit_test_name=test_money_adds_up"   # one test
 make import                               # rebuild .godot/ (needed after clone or new assets)
 make run                                  # play the game
 make export-web && make serve-web         # browser build on http://localhost:8060
@@ -40,13 +40,13 @@ Tools must already be installed (`make setup` does it): `godot` 4.7.2 on PATH, `
    only when the right-hand side makes the type obvious; otherwise write the type.
 2. **Every script under `game/` has `class_name`** (test and tool scripts deliberately
    have none), files/folders are `snake_case`, node names and
-   classes are `PascalCase`, signals are past tense (`coin_collected`), private members
+   classes are `PascalCase`, signals are past tense (`eaten`, `money_changed`), private members
    start with `_`, signal handlers are `_on_<source>_<signal>`.
 3. **Member order** is enforced by gdlint: `@tool` → `class_name` → `extends` → `##` docs →
    signals → enums → consts → static vars → `@export` → public vars → private vars →
    `@onready` public → `@onready` private → methods. `gdformat` handles whitespace.
-4. **Logic lives in `RefCounted` classes** (`GameRules`, `CoinSpawner`, `PlatformerMotion`)
-   with no scene dependencies so it can be unit-tested. Scenes are thin and integration-tested.
+4. **Logic lives in `RefCounted` classes** (`GameRules`, `PlatformerMotion`) with no scene
+   dependencies so it can be unit-tested. Scenes are thin and integration-tested.
 5. **Signal up, call down.** A scene emits signals to whoever owns it and calls methods on
    its children. `GameEvents` (autoload) is only for events that cross screens; it holds no
    state. Don't add state or methods to it.
@@ -66,16 +66,17 @@ Tools must already be installed (`make setup` does it): `godot` 4.7.2 on PATH, `
 
 - `game/main.tscn` (`Main`) owns the screen flow: `TitleScreen` → `Level` → `ResultsScreen`.
   It swaps the single child of `$Screen` and always un-pauses on a swap.
-- `Level` builds a `GameRules` from a `LevelConfig` resource (`game/core/levels/*.tres`),
-  ticks it every frame, spawns `Coin`s on a `Timer` using `CoinSpawner` (RNG injected;
-  `rng_seed` export for determinism), and forwards rules signals to `GameEvents`.
+- `Level` counts the `Human`s hand-placed under its `Humans` node, builds a `GameRules` from
+  that count, gives each human its `value` from the `LevelConfig` resource
+  (`game/core/levels/*.tres`), and forwards rules signals to `GameEvents`. No clock: the
+  level is won when the last human is eaten.
 - `Player` (`CharacterBody2D`, layer 1, mask 4) reads `move_left/right` + `jump`, gets its
   velocity from `PlatformerMotion` (`RefCounted`: run, gravity, jump, fall cap — unit-tested)
   and `move_and_slide()`s against `StaticBody2D` ground on layer 3 `world`, hand-placed
   under `Level`'s `World` node. Anything the blob should stand on must be on `world`.
-- `Coin` (`Area2D`, layer 2, mask 1) emits `collected` when a `Player` overlaps, then frees
-  itself. `Level` turns that into `GameRules.add_score`.
-- `Hud` listens to `GameEvents.score_changed` / `time_changed`. `PauseMenu` runs with
+- `Human` (`Area2D`, layer 2, mask 1) emits `eaten` when a `Player` overlaps, then frees
+  itself. `Level` turns that into `GameRules.eat_human`.
+- `Hud` listens to `GameEvents.money_changed` / `humans_changed`. `PauseMenu` runs with
   `process_mode = Always`, handles the `pause` action, and toggles `get_tree().paused`.
 - Input actions (`move_left/right`, `jump`, `pause`) are in `project.godot` → `[input]`.
   Physics layers: 1 `player`, 2 `pickups`, 3 `world` (see `docs/architecture.md`).
@@ -89,13 +90,19 @@ Tools must already be installed (`make setup` does it): `godot` 4.7.2 on PATH, `
   Add `tests/integration/<feature>/test_feature.gd`. Wire it into `Level` or `Main`.
 - **A new rule:** put it in a `RefCounted` class in `game/core/`, unit-test it in
   `tests/unit/core/`, then have a scene call it.
-- **A new level:** duplicate `game/core/levels/level_01.tres`, tweak values, assign it to
-  `Main`'s `Level Config` export.
+- **A new level:** a level is a scene. Duplicate `game/level/level.tscn`, rearrange `World`
+  and `Humans`, and assign it to `Main`'s `Level Scene` export. If it should pay differently,
+  duplicate `game/core/levels/level_01.tres` too and assign that to `Level Config`.
 - **A new platform:** in `game/level/level.tscn`, duplicate `LowPlatform` under `World`, set
   its `position`, keep `collision_layer = 4` (`world`) and `collision_mask = 0`, and resize the
   `RectangleShape2D` and the `ColorRect` together. `test_level_flow` checks every child of
-  `World` is solid and that each platform step is within a jump, so `make test` tells you if
-  you put one out of reach.
+  `World` is solid and every piece of ground is within one jump (vertically) of a lower one,
+  so `make test` catches a platform placed too high — not one placed too far sideways. Play it.
+- **A new human:** in `game/level/level.tscn`, duplicate a `Human*` node under `Humans` and
+  set its `position` — standing on the floor is `y = 337`, on a platform its top minus 7.
+  Only `Human` instances belong under `Humans` (anything else is reported and ignored).
+  `test_level_flow` pins the human count (`HUMANS_IN_LEVEL`) and checks every human stands on
+  ground, so `make test` goes red until you update the count — that is deliberate.
 - **A new input action:** add it to `project.godot` `[input]` (copy an existing block; use
   `physical_keycode`), then read it with `Input.get_axis` / `Input.is_action_just_pressed`
   (`Player` shows both).
@@ -125,7 +132,7 @@ Tools must already be installed (`make setup` does it): `godot` 4.7.2 on PATH, `
 - Godot prints **no** level-1 GDScript warnings in headless runs, so a grep-for-warnings
   gate can never work (we tried). A rule you want enforced must be level 2 (error) in
   `project.godot`; there is no "strict mode".
-- Two tests await real time (`test_level_flow.gd` timeout/spawn cases); keep durations short.
+- One test awaits real time (`test_level_flow.gd`'s wall test, 1.2 s); keep such waits short.
 
 ## When working with Jason and his son
 

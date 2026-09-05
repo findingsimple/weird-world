@@ -84,17 +84,18 @@ What the blob can *do*.
 - Gravity and a `jump` action; a floor, two platforms and invisible walls at the screen edges
 - One hand-built screen (`game/level/level.tscn`; its numbers in `game/core/levels/level_01.tres`)
 - Title screen → level → results, pause — reused from the template
-- Still the template's coins and clock, spawning only in the strip the blob can reach.
-  Milestone 2 replaces them.
+- Shipped with the template's coins and clock still in place (Milestone 2 replaced them)
 
 **Milestone 1b — a wider world**
 
 - A camera that follows the blob, and a level wider than one screen. Deferred from
   Milestone 1 because the first level fits in 640×360, so a camera had nothing to do.
 
-**Milestone 2 — a job**
+**Milestone 2 — a job** (done 2026-09-05)
 
-- Humans to eat; money shown in the HUD
+- Five hand-placed humans to eat; money and "humans left" in the HUD; eating everyone
+  ends the level (the ghost cake takes over as the goal in Milestone 4)
+- The template's coins, spawner and clock are gone
 
 **Milestone 3 — ghost strawberries**
 

@@ -1,20 +1,20 @@
 class_name Hud
 extends CanvasLayer
-## Heads-up display: score and time. Listens to [GameEventsBus] so it needs no wiring.
-## The public setters exist so the HUD can also be driven (and tested) directly.
+## Heads-up display: money earned and humans left. Listens to [GameEventsBus] so it needs
+## no wiring. The public setters exist so the HUD can also be driven (and tested) directly.
 
-@onready var _score_label: Label = %ScoreLabel
-@onready var _time_label: Label = %TimeLabel
+@onready var _money_label: Label = %MoneyLabel
+@onready var _humans_label: Label = %HumansLabel
 
 
 func _ready() -> void:
-	GameEvents.score_changed.connect(set_score)
-	GameEvents.time_changed.connect(set_time)
+	GameEvents.money_changed.connect(set_money)
+	GameEvents.humans_changed.connect(set_humans)
 
 
-func set_score(score: int, target: int) -> void:
-	_score_label.text = "Coins: %d / %d" % [score, target]
+func set_money(money: int) -> void:
+	_money_label.text = "$%d" % money
 
 
-func set_time(seconds_left: int) -> void:
-	_time_label.text = "Time: %d" % seconds_left
+func set_humans(humans_left: int, humans_total: int) -> void:
+	_humans_label.text = "Humans left: %d / %d" % [humans_left, humans_total]

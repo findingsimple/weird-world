@@ -14,7 +14,7 @@ That imports resources, runs every script under `tests/`, writes a JUnit report 
 
 ```sh
 make test GUT_ARGS="-gselect=test_game_rules"                                   # one script (substring match)
-make test GUT_ARGS="-gselect=test_game_rules -gunit_test_name=test_add_score"   # one test (substring match)
+make test GUT_ARGS="-gselect=test_game_rules -gunit_test_name=test_money_adds_up"   # one test (substring match)
 make test GUT_ARGS="-gdir=res://tests/unit -ginclude_subdirs"                   # one folder
 ```
 
@@ -34,18 +34,17 @@ Folders mirror `game/`: `game/core/game_rules.gd` → `tests/unit/core/test_game
 
 | File | Covers |
 | --- | --- |
-| `tests/unit/core/test_game_rules.gd` | Score, win, timeout, lose, whole-second ticks, clamping of bad inputs (11 tests) |
-| `tests/unit/core/test_coin_spawner.gd` | Positions stay inside the arena, seeded determinism, avoidance radius, exhausted retries |
-| `tests/unit/core/test_level_config.gd` | Defaults valid, `level_01.tres` loads, invalid values rejected |
+| `tests/unit/core/test_game_rules.gd` | Money adds up, humans count down, the last human wins exactly once, nothing after the win, negative values, clamping (9 tests) |
+| `tests/unit/core/test_level_config.gd` | Defaults valid, `level_01.tres` loads with the designer's `human_value`, zero rejected |
 | `tests/unit/core/test_platformer_motion.gd` | Run speed and input clamping, gravity per step, fall cap reached and held, jump only from the floor, landing zeroes vertical speed, `configure()`, nonsense tunables clamped (13 tests) |
 | `tests/integration/player/test_player.gd` | Falls and lands on a `world`-layer floor, idle stays still, runs on `move_right` at `speed`, jumps on `jump`, no double jump, non-default tunables reach the motion even after `_ready` |
-| `tests/integration/coin/test_coin.gd` | Emits `collected` on player overlap, frees itself, ignores a non-player `CharacterBody2D` that *is* overlapping (positive control) |
-| `tests/integration/ui/test_hud.gd` | Labels follow `GameEvents`; setters format text |
+| `tests/integration/human/test_human.gd` | Emits `eaten` on player overlap, frees itself, fidgets the sprite but never the hitbox, ignores a non-player `CharacterBody2D` that *is* overlapping (positive control) |
+| `tests/integration/ui/test_hud.gd` | Money and humans-left labels follow `GameEvents`; setters format text |
 | `tests/integration/ui/test_results_screen.gd` | Win/loss headings, buttons emit navigation signals |
 | `tests/integration/ui/test_title_screen.gd` | Play button emits `start_pressed` and has focus; the subtitle describes the current controls |
-| `tests/integration/ui/test_pause_menu.gd` | Visibility and tree pause follow `set_paused`, Resume un-pauses, `enabled = false` ignores the action |
+| `tests/integration/ui/test_pause_menu.gd` | Visibility and tree pause follow `set_paused`, Resume un-pauses, Title screen emits `quit_pressed` (and decides nothing itself), `enabled = false` ignores the action |
 | `tests/integration/main/test_main.gd` | Screen flow title → level → results → retry/title, un-pause on every swap, deferred `game_over` |
-| `tests/integration/level/test_level_flow.gd` | A whole fast round: spawns up to exactly `max_coins`, `coin_value` scoring, win, timeout, cleanup after the round, pause; the world: player drops in and lands, every `World` child is solid, walls hold, each platform step is within a jump, coins spawn within reach |
+| `tests/integration/level/test_level_flow.gd` | A whole level: the designer's human count (pinned once), HUD labels read through the level, every human paid the config's value, eating pays and emits exactly once, eating everyone wins exactly once and disables pausing, not won with one left, an empty level ends at once, a stray node under `Humans` is ignored, quitting from the pause menu ends the level as `LOST` with the money so far, pause; the world: player drops in and lands, every `World` child is solid, walls hold, every piece of ground is within one jump of a lower one, every human stands on something |
 
 ## Anatomy of a test script
 
@@ -57,14 +56,14 @@ var _rules: GameRules
 
 
 func before_each() -> void:          # runs before every test_ function
-	_rules = GameRules.new(3, 5.0)
+	_rules = GameRules.new(3)
 	watch_signals(_rules)            # needed before any assert_signal_* on this object
 
 
-func test_add_score_increments_and_emits_score_changed() -> void:
-	_rules.add_score()
-	assert_eq(_rules.score, 1)
-	assert_signal_emitted_with_parameters(_rules, "score_changed", [1])
+func test_eating_a_human_pays_and_emits_money_changed() -> void:
+	_rules.eat_human(2)
+	assert_eq(_rules.money, 2)
+	assert_signal_emitted_with_parameters(_rules, "money_changed", [2])
 ```
 
 - Test scripts `extends GutTest` and have **no** `class_name`.
@@ -110,7 +109,8 @@ func before_each() -> void:
   (bit value 4) under the player, and `_land()` waits for the landing before asserting.
 - Physics (overlaps, `move_and_slide`) only happens on physics frames:
   `await wait_physics_frames(3)`. Timers and `_process` need real time:
-  `await wait_seconds(0.3)`. Keep waits short — the level test uses a 0.5 s round.
+  `await wait_seconds(0.3)`. Keep waits short — the only real-time wait in the suite is the
+  level test's wall check, 1.2 s in total.
 - `wait_physics_frames(n)` is *about* n steps of your node, not exactly n — GUT's counter
   and your node run in different slots of a step. To measure something per frame, bracket
   the wait with `Engine.get_physics_frames()` and divide by the steps that really ran
@@ -118,7 +118,11 @@ func before_each() -> void:
 - Signals from the autoload bus: `watch_signals(GameEvents)` **before** adding the
   scene, because `Level._ready` emits immediately. GUT clears watched signals between
   tests.
-- Make randomness deterministic: `Level.rng_seed = 42` in the test.
+- GUT fails a test on any `push_error` or engine error it did not expect. When the error
+  *is* the behaviour under test (a misconfigured level), claim it:
+  `assert_push_error("no humans")` — the message may be a substring.
+- Nothing in the game is random any more. If something becomes random, inject the RNG the
+  way `PlatformerMotion` takes its tunables, so a test can seed it.
 
 ## Testing input
 

@@ -8,7 +8,7 @@ How Weird World is put together, and the rules that keep it easy to change.
 - A child **emits signals** when something happens (it does not know who is listening).
 - Things that cross screen boundaries go through one global bus, `GameEvents`.
 
-This keeps every scene self-contained: you can open `coin.tscn` or `player.tscn` on its
+This keeps every scene self-contained: you can open `human.tscn` or `player.tscn` on its
 own, run it, and test it in isolation.
 
 ## Scene tree
@@ -17,12 +17,11 @@ own, run it, and test it in isolation.
 Main (game/main.tscn)                     flow: title -> level -> results -> (level | title)
 └── Screen                                exactly one child at a time
     ├── TitleScreen                       emits start_pressed
-    ├── Level (game/level/level.tscn)     one round
-    │   ├── Background, ArenaEdge         visual only
+    ├── Level (game/level/level.tscn)     one level
+    │   ├── Background                    visual only
     │   ├── World                         Floor, platforms, edge walls: StaticBody2D on layer `world`
-    │   ├── Coins                         container for spawned Coin scenes
+    │   ├── Humans                        the hand-placed Human scenes the blob is paid to eat
     │   ├── Player                        CharacterBody2D, reads input, owns a PlatformerMotion
-    │   ├── SpawnTimer                    Timer -> Level._on_spawn_timer_timeout
     │   ├── Hud                           CanvasLayer, listens to GameEvents
     │   └── PauseMenu                     CanvasLayer, process_mode = Always
     └── ResultsScreen                     emits retry_pressed / title_pressed
@@ -37,19 +36,18 @@ because that signal can arrive in the middle of a physics callback.
 | Class | File | Role |
 | --- | --- | --- |
 | `Main` | `game/main.gd` | Screen flow only. Owns the `LevelConfig` to play. |
-| `Level` | `game/level/level.gd` | One round. Owns `GameRules` + `CoinSpawner`, spawns coins, forwards rule signals to the bus. |
-| `GameRules` | `game/core/game_rules.gd` | **Pure logic** (`RefCounted`): score, countdown, win/lose. No nodes. Unit-tested. |
-| `CoinSpawner` | `game/core/coin_spawner.gd` | **Pure logic**: picks spawn positions. RNG is injected so tests can seed it. |
+| `Level` | `game/level/level.gd` | One level. Counts its humans, owns `GameRules`, forwards rule signals to the bus. |
+| `GameRules` | `game/core/game_rules.gd` | **Pure logic** (`RefCounted`): money, humans left, win when all are eaten. No nodes. Unit-tested. |
 | `PlatformerMotion` | `game/core/platformer_motion.gd` | **Pure logic**: run speed, gravity, jump, fall cap — one `next_velocity()` call per physics frame. Unit-tested. |
-| `LevelConfig` | `game/core/level_config.gd` | `Resource` of tunables (`target_score`, `duration_seconds`, ...). Saved as `game/core/levels/level_01.tres`. |
+| `LevelConfig` | `game/core/level_config.gd` | `Resource` of tunables (`human_value`). Saved as `game/core/levels/level_01.tres`. |
 | `GameEventsBus` | `game/core/game_events.gd` | Autoload `GameEvents`. Signals only, no state. |
 | `Player` | `game/player/player.gd` | `CharacterBody2D`; reads `move_left`/`move_right`/`jump`, asks `PlatformerMotion` for a velocity, `move_and_slide()`. |
-| `Coin` | `game/coin/coin.gd` | `Area2D`; bobs, emits `collected` when a `Player` overlaps, frees itself. |
-| `Hud` | `game/ui/hud/hud.gd` | Score and time labels bound to the bus. |
+| `Human` | `game/human/human.gd` | `Area2D`; fidgets, emits `eaten` when a `Player` overlaps, frees itself. |
+| `Hud` | `game/ui/hud/hud.gd` | Money and humans-left labels bound to the bus. |
 | `TitleScreen`, `ResultsScreen` | `game/ui/...` | Emit navigation signals; contain no game logic. |
-| `PauseMenu` | `game/ui/pause_menu/pause_menu.gd` | Handles the `pause` action, pauses the tree, shows Resume. |
+| `PauseMenu` | `game/ui/pause_menu/pause_menu.gd` | Handles the `pause` action, pauses the tree, shows Resume and Title screen; emits `quit_pressed` up to `Level`. |
 
-The logic classes (`GameRules`, `CoinSpawner`, `PlatformerMotion`, `LevelConfig`) are `RefCounted`/`Resource`,
+The logic classes (`GameRules`, `PlatformerMotion`, `LevelConfig`) are `RefCounted`/`Resource`,
 not nodes. That is deliberate: they run in a unit test in a millisecond with no scene
 tree, and they can be reused unchanged in a 3D version of the game.
 
@@ -60,29 +58,29 @@ Autoloaded as `GameEvents` (`project.godot` → `[autoload]`). Holds no state.
 | Signal | Emitted by | Listened to by |
 | --- | --- | --- |
 | `game_started(config: LevelConfig)` | `Level._ready` | (free for your own use: music, analytics, ...) |
-| `score_changed(score: int, target: int)` | `Level` (initial value, then on every `GameRules.score_changed`) | `Hud.set_score` |
-| `time_changed(seconds_left: int)` | `Level` (initial value, then on every `GameRules.time_changed`) | `Hud.set_time` |
-| `game_over(outcome: GameRules.Outcome, score: int)` | `Level._on_rules_finished` | `Main._on_game_over` |
+| `money_changed(money: int)` | `Level` (initial value, then on every `GameRules.money_changed`) | `Hud.set_money` |
+| `humans_changed(humans_left: int, humans_total: int)` | `Level` (initial value, then on every `GameRules.humans_changed`) | `Hud.set_humans` |
+| `game_over(outcome: GameRules.Outcome, money: int)` | `Level._on_rules_finished` | `Main._on_game_over` |
 | `pause_toggled(is_paused: bool)` | `PauseMenu.set_paused` | (free: dim music, etc.) |
 
 Rule of thumb: add a signal here only when the emitter and the listener live on
 different screens. Inside one scene, use a direct signal.
 
-## Data flow: picking up one coin
+## Data flow: eating one human
 
 ```
 Physics server detects overlap
-  -> Coin.body_entered(body)              (Area2D signal)
-  -> Coin._on_body_entered: body is Player
-  -> Coin.collected.emit(self); queue_free()
-  -> Level._on_coin_collected(coin)       (connected in Level.spawn_coin_at)
-  -> GameRules.add_score(coin.value)
-  -> GameRules.score_changed.emit(score)
-  -> Level._on_rules_score_changed
-  -> GameEvents.score_changed.emit(score, target)
-  -> Hud.set_score -> label text
-  (if score >= target) GameRules.finished.emit(WON)
-  -> Level._on_rules_finished -> GameEvents.game_over.emit(WON, score)
+  -> Human.body_entered(body)             (Area2D signal)
+  -> Human._on_body_entered: body is Player
+  -> Human.eaten.emit(self); queue_free()
+  -> Level._on_human_eaten(human)         (connected in Level._ready)
+  -> GameRules.eat_human(human.value)
+  -> GameRules.money_changed.emit(money); humans_changed.emit(left, total)
+  -> Level._on_rules_money_changed / _on_rules_humans_changed
+  -> GameEvents.money_changed.emit(money); GameEvents.humans_changed.emit(left, total)
+  -> Hud.set_money / Hud.set_humans -> label text
+  (if left == 0) GameRules.finished.emit(WON)
+  -> Level._on_rules_finished -> GameEvents.game_over.emit(WON, money)
   -> Main._on_game_over -> results screen (deferred)
 ```
 
@@ -90,14 +88,18 @@ Every hop is either a signal (up) or a plain method call (down).
 
 ## Time and pausing
 
-- `Level._process(delta)` calls `GameRules.tick(delta)`. The countdown is frame-rate
-  independent.
-- `SpawnTimer` fires every `config.spawn_interval` seconds; `Level._spawn_coin` skips
-  when `max_coins` are already on screen.
+- There is no clock: a level ends when the last human is eaten (docs/gdd.md). Lives and
+  losing arrive with the ghost strawberries in Milestone 3.
 - `PauseMenu` has `process_mode = Always`, so it still receives input when
   `get_tree().paused` is true — that is what lets Esc resume. Everything else in the
-  level inherits the paused state and stops (timers, `_process`, physics).
-- When the round ends, `Level` disables the pause menu (`_pause_menu.enabled = false`).
+  level inherits the paused state and stops (`_process`, physics).
+- When the level ends, `Level` disables the pause menu (`_pause_menu.enabled = false`).
+- The pause menu's **Title screen** button emits `quit_pressed` — a direct signal up to
+  `Level`, not a bus signal, because only `Level` decides what leaving means: it ends the
+  level as `LOST` with the money earned so far, and `Main` shows the results screen.
+- A level with no humans is finished the moment it starts (`GameRules` is born `WON`;
+  `Level` notices after wiring up and emits `game_over`). A non-`Human` node under `Humans`
+  is reported with `push_error` and ignored, never counted.
 
 ## Physics layers
 
@@ -106,8 +108,8 @@ Named in `project.godot` → `[layer_names]`. A body is *on* its `collision_laye
 
 | Layer (bit value) | Name | Who is on it | Who looks for it |
 | --- | --- | --- | --- |
-| 1 (1) | `player` | `Player` | `Coin` (mask 1) |
-| 2 (2) | `pickups` | `Coin` | nobody — an `Area2D` detects, it is not detected |
+| 1 (1) | `player` | `Player` | `Human` (mask 1) |
+| 2 (2) | `pickups` | `Human` | nobody — an `Area2D` detects, it is not detected |
 | 3 (4) | `world` | floor, platforms and edge walls (`StaticBody2D`) | `Player` (mask 4) |
 
 Anything solid the blob should stand on goes on `world`. Otherwise it falls straight
@@ -132,7 +134,7 @@ what it creates.
 ## Folder conventions
 
 - **Feature folders**: a scene, its script and its assets live together
-  (`game/coin/coin.tscn`, `coin.gd`, `coin.svg`). Not `scenes/`, `scripts/`, `sprites/`.
+  (`game/human/human.tscn`, `human.gd`, `human.svg`). Not `scenes/`, `scripts/`, `sprites/`.
 - `game/core/` — logic and data that are not scenes.
 - `game/ui/` — screens and HUD, one folder each; `game/ui/theme/` for the shared theme.
 - `tests/unit/` and `tests/integration/` mirror `game/`.
@@ -145,11 +147,11 @@ what it creates.
 
 The structure does not change:
 
-- Keep `game/core/` exactly as it is. `GameRules`, `LevelConfig`, `CoinSpawner`
-  (return a `Vector3` instead) and the `GameEvents` contract are dimension-agnostic.
-- Scenes become `Node3D` trees: `Player` extends `CharacterBody3D`, `Coin` extends
-  `Area3D`, the arena is an `AABB` instead of a `Rect2`. Unit tests do not change;
-  integration tests swap `wait_physics_frames` targets for 3D nodes.
+- Keep `game/core/` exactly as it is. `GameRules`, `PlatformerMotion`, `LevelConfig` and
+  the `GameEvents` contract are dimension-agnostic.
+- Scenes become `Node3D` trees: `Player` extends `CharacterBody3D`, `Human` extends
+  `Area3D`, ground is `StaticBody3D`. Unit tests do not change; integration tests swap
+  `wait_physics_frames` targets for 3D nodes.
 - Renderer: 3D wants `forward_plus` (or `mobile`). Change
   `rendering/renderer/rendering_method` in `project.godot` and drop the
   `"GL Compatibility"` feature tag. Note that only the Compatibility renderer runs on

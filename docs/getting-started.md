@@ -33,7 +33,7 @@ Step 4 is only needed for `make export-*`. Skip it if you just want to play and 
 
 ```sh
 make version   # "Godot 4.7.2 OK"
-make run       # the game opens in a window — play a round
+make run       # the game opens in a window — play a level, eat everyone
 make ci        # lint + compile check + tests; everything should be green
 make help      # lists every target
 ```

@@ -48,6 +48,15 @@ func test_resume_button_unpauses() -> void:
 	assert_false(_menu.visible)
 
 
+func test_title_button_emits_quit_pressed_and_decides_nothing_itself() -> void:
+	watch_signals(_menu)
+	_menu.set_paused(true)
+	var title: Button = _menu.get_node("%TitleButton")
+	title.pressed.emit()
+	assert_signal_emitted(_menu, "quit_pressed")
+	assert_true(get_tree().paused, "the owner, not the menu, decides what leaving means")
+
+
 func test_pause_action_toggles_when_enabled() -> void:
 	_sender.action_down("pause")
 	Input.flush_buffered_events()

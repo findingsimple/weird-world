@@ -10,8 +10,8 @@ node: a sprite, a timer, a button, a physics body. Each node has a type that dec
 what it can do.
 
 **Scene** — a tree of nodes saved in a `.tscn` file. `player.tscn` is a scene; so is
-the whole level. Scenes can be instanced inside other scenes (the level contains many
-coins, each an instance of `coin.tscn`).
+the whole level. Scenes can be instanced inside other scenes (the level contains five
+humans, each an instance of `human.tscn`).
 
 **Tree (scene tree)** — all the nodes currently running, arranged parent → child. The
 root is the window. "Adding a node to the tree" makes it live; removing it stops it.
@@ -36,7 +36,7 @@ each uses.
 **`.uid`** — a tiny generated file next to each `.gd` holding its permanent id, so
 references survive renames. Commit them.
 
-**`.import`** — generated next to each asset (`coin.svg.import`) with the import
+**`.import`** — generated next to each asset (`human.svg.import`) with the import
 settings. Commit them too.
 
 **`.godot/`** — Godot's cache folder. Generated, git-ignored, safe to delete
@@ -51,12 +51,12 @@ and scales up by whole numbers so pixels stay crisp.
 the last one, in seconds.
 
 **CharacterBody2D** — a physics body you move yourself from code (the player).
-**Area2D** — detects overlaps but does not push anything (the coin).
+**Area2D** — detects overlaps but does not push anything (a human).
 **StaticBody2D** — a body that never moves (the floor, the platforms, the invisible walls).
 
 **Collision layer vs mask** — *layer* is what a body *is* (the player is on layer 1,
-coins on layer 2, the floor and platforms on layer 3, `world`). *Mask* is what it *looks
-for* (the coin's mask is 1: it notices the player; the player's mask is 4: it bumps into
+humans on layer 2, the floor and platforms on layer 3, `world`). *Mask* is what it *looks
+for* (a human's mask is 1: it notices the player; the player's mask is 4: it bumps into
 the world). A layer's *bit value* doubles each time: layer 1 = 1, layer 2 = 2, layer 3 = 4.
 Named in `project.godot` → `[layer_names]`.
 

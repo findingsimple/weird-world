@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://game/human/human.gd" id="1_human"]
+[ext_resource type="Texture2D" path="res://game/human/human.svg" id="2_sprite"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_human"]
+size = Vector2(10, 14)
+
+[node name="Human" type="Area2D"]
+collision_layer = 2
+collision_mask = 1
+monitorable = false
+script = ExtResource("1_human")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_sprite")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_human")

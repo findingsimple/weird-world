@@ -27,7 +27,7 @@ BUILD_DIR := build
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 	@echo ""
-	@echo "  Single test:  make test GUT_ARGS=\"-gselect=test_game_rules -gunit_test_name=test_add_score\""
+	@echo "  Single test:  make test GUT_ARGS=\"-gselect=test_game_rules -gunit_test_name=test_money_adds_up\""
 	@echo "  Warnings you want enforced must be level 2 (error) in project.godot; Godot prints no level-1 warnings headlessly."
 
 setup: ## Install Godot, gdtoolkit, pre-commit and export templates (macOS)

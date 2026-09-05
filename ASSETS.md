@@ -58,5 +58,5 @@ the commit — raise the limit in `.pre-commit-config.yaml` deliberately, or shr
 
 | Asset | Author | Source | Licence |
 |---|---|---|---|
-| `icon.svg`, `game/player/player.svg`, `game/coin/coin.svg` | findingsimple | this repository | CC0 1.0 |
+| `icon.svg`, `game/player/player.svg` (blob placeholder), `game/human/human.svg` | findingsimple | this repository | CC0 1.0 |
 | `docs/design/weird_world.pdf` (the concept book) | the Weird World designer | this repository | © the author, all rights reserved — a design document, not shipped in the game |

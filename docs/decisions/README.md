@@ -49,3 +49,4 @@ One line each: **option** — why not.
 | [0009](0009-makefile-task-runner.md) | Makefile as the task runner |
 | [0010](0010-game-events-bus-and-signal-up.md) | Stateless `GameEvents` bus, signal up / call down, logic in `RefCounted` classes |
 | [0011](0011-platformer-motion-and-world-layer.md) | Platformer physics in a `RefCounted`, solid ground on a `world` layer, hand-built levels |
+| [0012](0012-humans-money-no-clock.md) | Hand-placed humans, money, no clock; eating everyone ends the level |

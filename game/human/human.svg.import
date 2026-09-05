@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bxq3wpxu3ssmu"
-path="res://.godot/imported/coin.svg-2eb4f093bd540860c5d416123c9ff34a.ctex"
+uid="uid://dgyuo3l5xnovy"
+path="res://.godot/imported/human.svg-418802ae89c29f376bfe1f51ab3b727b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://game/coin/coin.svg"
-dest_files=["res://.godot/imported/coin.svg-2eb4f093bd540860c5d416123c9ff34a.ctex"]
+source_file="res://game/human/human.svg"
+dest_files=["res://.godot/imported/human.svg-418802ae89c29f376bfe1f51ab3b727b.ctex"]
 
 [params]
 

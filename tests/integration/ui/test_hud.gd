@@ -4,29 +4,29 @@ extends GutTest
 const HUD_SCENE := preload("res://game/ui/hud/hud.tscn")
 
 var _hud: Hud
-var _score_label: Label
-var _time_label: Label
+var _money_label: Label
+var _humans_label: Label
 
 
 func before_each() -> void:
 	_hud = HUD_SCENE.instantiate()
 	add_child_autofree(_hud)
-	_score_label = _hud.get_node("%ScoreLabel")
-	_time_label = _hud.get_node("%TimeLabel")
+	_money_label = _hud.get_node("%MoneyLabel")
+	_humans_label = _hud.get_node("%HumansLabel")
 
 
-func test_score_label_reflects_game_events_score_changed() -> void:
-	GameEvents.score_changed.emit(3, 10)
-	assert_eq(_score_label.text, "Coins: 3 / 10")
+func test_money_label_follows_game_events_money_changed() -> void:
+	GameEvents.money_changed.emit(3)
+	assert_eq(_money_label.text, "$3")
 
 
-func test_time_label_reflects_game_events_time_changed() -> void:
-	GameEvents.time_changed.emit(7)
-	assert_eq(_time_label.text, "Time: 7")
+func test_humans_label_follows_game_events_humans_changed() -> void:
+	GameEvents.humans_changed.emit(2, 5)
+	assert_eq(_humans_label.text, "Humans left: 2 / 5")
 
 
 func test_setters_format_text() -> void:
-	_hud.set_score(1, 2)
-	_hud.set_time(9)
-	assert_eq(_score_label.text, "Coins: 1 / 2")
-	assert_eq(_time_label.text, "Time: 9")
+	_hud.set_money(12)
+	_hud.set_humans(0, 5)
+	assert_eq(_money_label.text, "$12")
+	assert_eq(_humans_label.text, "Humans left: 0 / 5")

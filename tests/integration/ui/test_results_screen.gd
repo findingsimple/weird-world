@@ -15,15 +15,15 @@ func before_each() -> void:
 func test_show_result_for_a_win() -> void:
 	_screen.show_result(GameRules.Outcome.WON, 10)
 	var heading: Label = _screen.get_node("%Heading")
-	var score: Label = _screen.get_node("%ScoreLabel")
-	assert_eq(heading.text, "You win!")
-	assert_eq(score.text, "Coins collected: 10")
+	var money: Label = _screen.get_node("%MoneyLabel")
+	assert_eq(heading.text, "You ate everyone!")
+	assert_eq(money.text, "Money earned: $10")
 
 
 func test_show_result_for_a_loss() -> void:
 	_screen.show_result(GameRules.Outcome.LOST, 4)
 	var heading: Label = _screen.get_node("%Heading")
-	assert_eq(heading.text, "Time's up!")
+	assert_eq(heading.text, "Game over")
 
 
 func test_buttons_emit_navigation_signals() -> void:

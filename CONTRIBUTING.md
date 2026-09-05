@@ -26,7 +26,7 @@ release-please reads commit messages to decide the next version and write the ch
 | `feat!:` / `fix!:` or a `BREAKING CHANGE:` footer | incompatible change (e.g. save format) | major |
 | `docs:`, `test:`, `refactor:`, `chore:`, `ci:`, `style:` | everything else | none |
 
-Examples: `feat: add a moving enemy to the arena`, `fix: coins no longer spawn on the player`,
+Examples: `feat: ghost strawberries patrol the platforms`, `fix: a human on the high platform was out of reach`,
 `docs: explain how to add a level`.
 
 Keep the subject under ~70 characters, imperative mood ("add", not "added").

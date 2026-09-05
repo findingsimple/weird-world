@@ -44,23 +44,23 @@ Two blank lines between functions (gdformat does this for you).
 
 | Thing | Style | Example |
 | --- | --- | --- |
-| Files, folders | `snake_case` | `coin_spawner.gd`, `game/ui/pause_menu/` |
-| `class_name`, node names | `PascalCase` | `CoinSpawner`, `SpawnTimer` |
-| Functions, variables, signal parameters | `snake_case` | `pick_position`, `time_remaining` |
-| Private members | leading underscore | `_rules`, `_spawn_coin()` |
-| Constants | `CONSTANT_CASE` | `MIN_DURATION_SECONDS` |
+| Files, folders | `snake_case` | `platformer_motion.gd`, `game/ui/pause_menu/` |
+| `class_name`, node names | `PascalCase` | `PlatformerMotion`, `LowPlatform` |
+| Functions, variables, signal parameters | `snake_case` | `next_velocity`, `humans_left` |
+| Private members | leading underscore | `_rules`, `_on_human_eaten()` |
+| Constants | `CONSTANT_CASE` | `MIN_FALL_RATE` |
 | Enums / members | `PascalCase` / `CONSTANT_CASE` | `Outcome.IN_PROGRESS` |
-| Signals | past tense, what happened | `collected`, `score_changed`, `start_pressed` |
-| Signal handlers | `_on_<source>_<signal>` | `_on_coin_collected`, `_on_play_button_pressed` |
+| Signals | past tense, what happened | `eaten`, `money_changed`, `start_pressed` |
+| Signal handlers | `_on_<source>_<signal>` | `_on_human_eaten`, `_on_play_button_pressed` |
 | Booleans | `is_`, `has_`, `can_` | `is_finished()`, `is_valid()` |
 
 ## Typing
 
 - **Type everything**: variables, parameters, return values, typed arrays
-  (`Array[Coin]`). Untyped declarations are a compile error in this project.
+  (`Array[Human]`). Untyped declarations are a compile error in this project.
 - Use `:=` only when the type is obvious from the right-hand side —
-  `var rng := RandomNumberGenerator.new()`, `var inner := arena.grow(-margin)`.
-  Write the type when it is not: `var coin: Coin = coin_scene.instantiate()`.
+  `var motion := PlatformerMotion.new(...)`, `var box := collider.shape as RectangleShape2D`.
+  Write the type when it is not: `var level: Level = LEVEL_SCENE.instantiate()`.
 - Prefer `int` for counts and scores, `float` for time and positions. `ceili`, `maxi`,
   `maxf` and friends keep types explicit.
 - Avoid `Variant`. If you must, narrow it immediately with a typed assignment.
@@ -76,9 +76,9 @@ Two blank lines between functions (gdformat does this for you).
 - `@onready var _label: Label = %UniqueName` for child references; mark the node
   *Access as Unique Name* in the scene. No `get_node("Path/To/Deep/Node")` chains.
 - Signals up, calls down (see `architecture.md`). Pass dependencies in — `Player`
-  hands `PlatformerMotion` its tunables; `CoinSpawner` receives its RNG.
+  hands `PlatformerMotion` its tunables; `Level` hands each `Human` its `value`.
 - Put rules and math in `RefCounted` classes, not in nodes, so they can be unit-tested
-  without a scene tree. `GameRules`, `CoinSpawner` and `PlatformerMotion` are the pattern.
+  without a scene tree. `GameRules` and `PlatformerMotion` are the pattern.
 - Small functions that do one thing. If you need a comment to explain *what* a block
   does, extract a function named after it; keep comments for *why*.
 
@@ -97,14 +97,14 @@ func _on_body_entered(body):
 		queue_free()
 ```
 
-Good — typed, emits a signal, lets the owner decide what a coin is worth:
+Good — typed, emits a signal, lets the owner decide what a human is worth:
 
 ```gdscript
-class_name Coin
+class_name Human
 extends Area2D
-## A collectible coin. Emits [signal collected] when the player touches it.
+## A human: the blob's paycheck. Emits [signal eaten] when the player touches it.
 
-signal collected(coin: Coin)
+signal eaten(human: Human)
 
 @export var value: int = 1
 
@@ -115,7 +115,7 @@ func _ready() -> void:
 
 func _on_body_entered(body: Node2D) -> void:
 	if body is Player:
-		collected.emit(self)
+		eaten.emit(self)
 		queue_free()
 ```
 

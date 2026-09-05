@@ -31,7 +31,7 @@ how to learn from it. Each doc is short and focused; read what you need.
 ### If you are just starting out
 
 1. `getting-started.md` — ask for help with the setup steps; it is a one-time thing.
-2. `first-change.md` — make the player faster. Seriously, start there.
+2. `first-change.md` — make the blob faster. Seriously, start there.
 3. `glossary.md` — keep it open; look words up as you meet them.
 4. `working-with-claude.md` — how to ask for help so you learn *and* get things done.
 5. `architecture.md` — once you are curious how the pieces connect.

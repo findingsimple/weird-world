@@ -45,9 +45,10 @@ func test_starts_on_the_title_screen() -> void:
 	assert_true(_current_screen() is TitleScreen)
 
 
-func test_start_pressed_shows_a_level_with_mains_config() -> void:
+func test_start_pressed_shows_mains_level_scene_with_mains_config() -> void:
 	var level := await _start_game()
 	assert_not_null(level)
+	assert_eq(level.scene_file_path, _main.level_scene.resource_path)
 	assert_same(level.config, _main.level_config)
 
 
@@ -60,7 +61,7 @@ func test_game_over_shows_results_and_unpauses() -> void:
 	assert_not_null(results)
 	assert_false(get_tree().paused, "swapping screens always un-pauses")
 	var heading: Label = results.get_node("%Heading")
-	assert_eq(heading.text, "You win!")
+	assert_eq(heading.text, "You ate everyone!")
 
 
 func test_retry_starts_a_new_level() -> void:

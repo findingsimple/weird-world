@@ -6,7 +6,7 @@ that Claude's changes can be checked, not just trusted. This page is the playboo
 
 ## The session recipe
 
-1. **Say the goal in one sentence.** "Make coins worth more the longer the round goes."
+1. **Say the goal in one sentence.** "Make humans on platforms worth more than ones on the floor."
 2. **Ask for a plan first.** "Before changing anything, tell me which files you would
    touch and why." Read it together. Push back if it touches more than it needs to.
 3. **One small change at a time.** A change that fits on one screen is a change you
@@ -14,7 +14,7 @@ that Claude's changes can be checked, not just trusted. This page is the playboo
 4. **Run `make ci`.** Lint, compile check, tests. Green or it is not done.
 5. **Read the diff together.** `git diff`. Ask the kid: what changed? why? Ask
    Claude: "explain this diff line by line."
-6. **Commit with a conventional message.** `feat: coin value grows over time`. That
+6. **Commit with a conventional message.** `feat: humans on platforms pay double`. That
    message ends up in the changelog.
 
 Repeat. Ten small loops beat one big one.
@@ -27,7 +27,7 @@ Repeat. Ten small loops beat one big one.
 | "What are three ways to add an enemy, and which is simplest?" | You choose; Claude does not decide the design for you |
 | "Add a failing test for X first, then make it pass." | The test is the spec; you can read it even if you can't read the code yet |
 | "Why did you do it that way instead of ...?" | *Why* is the part you learn from; *what* you can see in the diff |
-| "Only change `coin.gd`. Tell me if that is not enough." | Scope guards keep the change reviewable |
+| "Only change `human.gd`. Tell me if that is not enough." | Scope guards keep the change reviewable |
 | "Run `make ci` and show me the result." | Verification is part of the task, not a follow-up |
 | "Is there anything in this change a careful reviewer would question?" | Invites the assistant to surface trade-offs it glossed over |
 | "Update `CLAUDE.md` if this changed a rule or a command." | Keeps the assistant's instructions true for next time |
@@ -73,25 +73,26 @@ setup; the tooling exists to make them quick and safe.
 Sized for this codebase. Each one is a few sessions at most.
 
 **Tiny (one sitting)**
-- Make the player faster or slower (`speed` in `game/player/player.gd`).
-- Change the colours of the coin or the player (`*.svg` files — they are text).
-- Make the round longer and harder (`game/core/levels/level_01.tres`).
+- Make the blob faster, or jump higher (`speed`, `jump_velocity` in `game/player/player.gd`).
+- Redraw the blob or the humans (`*.svg` files — they are text).
+- Pay more per human (`game/core/levels/level_01.tres`), or place more humans (`level.tscn`).
 - Change the win text on the results screen.
 
 **Small (a weekend)**
-- A second coin type worth 5 points: new `@export` values on `Coin`, a different SVG,
-  `CoinSpawner` or `Level` picks which one to spawn. Tests: spawner ratio, value.
-- A sound when a coin is collected (`AudioStreamPlayer`, a CC0 `.ogg`, update
-  `ASSETS.md`).
-- A best-score line on the title screen (save with `FileAccess` in `user://`).
+- A second kind of human worth more — a chef? — with its own SVG and `value`. Tests:
+  `test_human`, the money total in `test_level_flow`.
+- A sound when a human is eaten (`AudioStreamPlayer`, a CC0 `.ogg`, update `ASSETS.md`).
+- A best-money line on the title screen (save with `FileAccess` in `user://`).
+- A second level: a new scene with its own platforms and humans, chosen on `Main`.
 
 **Medium (several sessions)**
-- A moving enemy: `Area2D` that chases the player; touching it ends the round. New
-  `GameRules.Outcome`? New signal on the bus? Design it first — write the
-  `docs/gdd-template.md` section before the code.
-- Levels: a second `LevelConfig`, a level-select screen, `Main` picking the next
-  config after a win.
-- A 3D version of the arena, reusing `game/core/` untouched (see
+- The ghost strawberry (Milestone 3 in `docs/gdd.md`): walks, turns at edges, stomp it
+  from above, lose a life if it touches your side. New `GameRules` lives, a `LOST`
+  outcome that actually happens, new bus signal? Design it first — fill in the GDD
+  before the code.
+- Levels: a second level scene, a level-select screen, `Main` picking the next
+  scene after a win.
+- A 3D version of the level, reusing `game/core/` untouched (see
   `architecture.md` → Going 3D).
 
 Write the idea in the GDD template first, even two lines. Then ask for the plan.

@@ -1,14 +1,14 @@
 class_name ResultsScreen
 extends Control
-## Shown when a round ends. Emits what the player chose; [Main] does the navigation.
+## Shown when a level ends. Emits what the player chose; [Main] does the navigation.
 
-## The player wants another round.
+## The player wants to play the level again.
 signal retry_pressed
 ## The player wants to go back to the title screen.
 signal title_pressed
 
 @onready var _heading: Label = %Heading
-@onready var _score_label: Label = %ScoreLabel
+@onready var _money_label: Label = %MoneyLabel
 @onready var _retry_button: Button = %RetryButton
 @onready var _title_button: Button = %TitleButton
 
@@ -19,10 +19,10 @@ func _ready() -> void:
 	_retry_button.grab_focus()
 
 
-## Fills in the heading and score. Call after the screen is in the tree.
-func show_result(outcome: GameRules.Outcome, score: int) -> void:
-	_heading.text = "You win!" if outcome == GameRules.Outcome.WON else "Time's up!"
-	_score_label.text = "Coins collected: %d" % score
+## Fills in the heading and the money. Call after the screen is in the tree.
+func show_result(outcome: GameRules.Outcome, money: int) -> void:
+	_heading.text = "You ate everyone!" if outcome == GameRules.Outcome.WON else "Game over"
+	_money_label.text = "Money earned: $%d" % money
 
 
 func _on_retry_button_pressed() -> void:
