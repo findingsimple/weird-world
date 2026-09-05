@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/findingsimple/weird-world/compare/v0.1.0...v0.1.1) (2026-09-05)
+
+
+### Bug Fixes
+
+* name web assets per build so a stale browser cache cannot hide a release ([09c2c64](https://github.com/findingsimple/weird-world/commit/09c2c64264c94a64a3dc49f272c34bc551d8269e))
+
 ## 0.1.0 (2026-09-05)
 
 
