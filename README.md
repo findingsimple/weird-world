@@ -12,9 +12,8 @@ concept book is in [docs/design/](docs/design/).
 **Where it's at:** Milestone 1 — the blob runs and jumps around one hand-built screen.
 The template's coins and clock are still in until Milestone 2 brings the humans.
 
-**Play in the browser:** the Web build publishes to
-<https://findingsimple.github.io/weird-world/> once GitHub Pages is enabled on the repo
-(it is private for now, so the link is not live yet). Until then: `make run`.
+**Play in the browser:** <https://findingsimple.github.io/weird-world/> — rebuilt and
+published by the Web workflow on every push to `main`. Or `make run` for a native window.
 
 ## Why this exists
 
