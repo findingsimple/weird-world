@@ -74,7 +74,7 @@ tests/
   unit/               Logic tests — no scene tree (PlatformerMotion, GameRules, CoinSpawner, LevelConfig)
   integration/        Scene tests — real physics, real input (Player, Level, Coin, UI, screen flow)
 addons/gut/           GUT 9.7.1 test framework (vendored, never edited)
-scripts/              setup.sh, check_scripts.gd, new_game.py (the template's rename script, kept for reference)
+scripts/              setup.sh (developer setup), check_scripts.gd (the compile check)
 docs/                 Design doc and concept book, guides, glossary, architecture decisions
 .github/workflows/    ci.yml (lint+test), web.yml (GitHub Pages), release.yml (release-please + builds)
 ```
