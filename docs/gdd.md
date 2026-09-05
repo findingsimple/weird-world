@@ -131,6 +131,9 @@ the `Main` node.
 
 ## Open questions
 
-- How high should the blob jump — one platform, or two? (Playtest with a kid at the controls.)
+- ~~How high should the blob jump — one platform, or two?~~ **Answered by playtest,
+  2026-09-05: "Jump is good."** Two steps of 48 px with `jump_velocity 330` / `gravity 980`.
+  Those numbers are now the reference; `test_level_flow` fails if a tweak makes a platform
+  unreachable.
 - Do humans run away when they see a blob? (Funny, but harder. Milestone 2 says: they don't.)
 - What does the blob look like when it's eaten a lot? Bigger? Slower?
