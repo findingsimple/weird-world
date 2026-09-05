@@ -64,6 +64,8 @@ What the blob can *do*.
   costs one life and restarts the blob at the level start (or last checkpoint).
 - **Win**: stomp the ghost cake `boss_health` (3) times.
 - **Lose**: run out of lives.
+- There is **no clock**. Take your time, eat everyone. (Decided 2026-09-05; a speed
+  bonus is a "later" idea, not a rule.)
 - Money carries between levels (it's a job, after all).
 
 ## Controls
@@ -122,8 +124,6 @@ the `Main` node.
 
 ## Open questions
 
-- Should the round still have a clock, like the template? (Suggestion: no clock; the
-  cake is the goal. Try a "speed bonus" later if levels feel slow.)
 - How high should the blob jump — one platform, or two? (Playtest with a kid at the controls.)
 - Do humans run away when they see a blob? (Funny, but harder. Milestone 2 says: they don't.)
 - What does the blob look like when it's eaten a lot? Bigger? Slower?
