@@ -124,18 +124,18 @@ The rules of the game live in `game/core/game_rules.gd`. Its tests live in
    func test_money_adds_up() -> void:
    	_rules.eat_human(VALUE)
    	_rules.eat_human(5)
-   	assert_eq(_rules.money, VALUE + 5)
+   	assert_eq(_wallet.money, VALUE + 5)
    ```
 
-   `_rules` is a fresh `GameRules` with 3 humans in it, made for every test by
-   `before_each`. `assert_eq` means "check these two are equal."
+   `_rules` is a fresh `GameRules` with 3 humans in it, paying into a fresh `_wallet`, made
+   for every test by `before_each`. `assert_eq` means "check these two are equal."
 
 2. Add this new test at the bottom of the file (indent with a **tab**, like the
    others):
 
    ```gdscript
    func test_two_humans_do_not_finish_a_two_human_level_until_both_are_eaten() -> void:
-   	var rules := GameRules.new(2)
+   	var rules := GameRules.new(2, Wallet.new())
    	rules.eat_human(1)
    	assert_false(rules.is_finished())
    	rules.eat_human(1)

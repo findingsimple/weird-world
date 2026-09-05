@@ -50,3 +50,4 @@ One line each: **option** — why not.
 | [0010](0010-game-events-bus-and-signal-up.md) | Stateless `GameEvents` bus, signal up / call down, logic in `RefCounted` classes |
 | [0011](0011-platformer-motion-and-world-layer.md) | Platformer physics in a `RefCounted`, solid ground on a `world` layer, hand-built levels |
 | [0012](0012-humans-money-no-clock.md) | Hand-placed humans, money, no clock; eating everyone ends the level |
+| [0013](0013-wallet-owned-by-main.md) | The blob's money lives in a `Wallet` owned by `Main`; it survives level restarts |

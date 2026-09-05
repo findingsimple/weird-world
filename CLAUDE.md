@@ -45,8 +45,8 @@ Tools must already be installed (`make setup` does it): `godot` 4.7.2 on PATH, `
 3. **Member order** is enforced by gdlint: `@tool` → `class_name` → `extends` → `##` docs →
    signals → enums → consts → static vars → `@export` → public vars → private vars →
    `@onready` public → `@onready` private → methods. `gdformat` handles whitespace.
-4. **Logic lives in `RefCounted` classes** (`GameRules`, `PlatformerMotion`) with no scene
-   dependencies so it can be unit-tested. Scenes are thin and integration-tested.
+4. **Logic lives in `RefCounted` classes** (`GameRules`, `Wallet`, `PlatformerMotion`) with no
+   scene dependencies so it can be unit-tested. Scenes are thin and integration-tested.
 5. **Signal up, call down.** A scene emits signals to whoever owns it and calls methods on
    its children. `GameEvents` (autoload) is only for events that cross screens; it holds no
    state. Don't add state or methods to it.
@@ -65,11 +65,13 @@ Tools must already be installed (`make setup` does it): `godot` 4.7.2 on PATH, `
 ## Architecture in six lines
 
 - `game/main.tscn` (`Main`) owns the screen flow: `TitleScreen` → `Level` → `ResultsScreen`.
-  It swaps the single child of `$Screen` and always un-pauses on a swap.
+  It swaps the single child of `$Screen` and always un-pauses on a swap. It also owns the
+  blob's `Wallet` (money outlives a level; the title screen starts a new job) and hands it
+  to each `Level`.
 - `Level` counts the `Human`s hand-placed under its `Humans` node, builds a `GameRules` from
-  that count, gives each human its `value` from the `LevelConfig` resource
-  (`game/core/levels/*.tres`), and forwards rules signals to `GameEvents`. No clock: the
-  level is won when the last human is eaten.
+  that count and the wallet, gives each human its `value` from the `LevelConfig` resource
+  (`game/core/levels/*.tres`), and forwards signals to `GameEvents`. No clock: the level is
+  won when the last human is eaten. There are no lives; leaving early is `LOST`.
 - `Player` (`CharacterBody2D`, layer 1, mask 4) reads `move_left/right` + `jump`, gets its
   velocity from `PlatformerMotion` (`RefCounted`: run, gravity, jump, fall cap — unit-tested)
   and `move_and_slide()`s against `StaticBody2D` ground on layer 3 `world`, hand-placed

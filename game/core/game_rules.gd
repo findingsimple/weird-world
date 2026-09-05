@@ -1,34 +1,34 @@
 class_name GameRules
 extends RefCounted
-## The rules of a Weird World level: eat humans for money; eat them all to finish the level.
+## The rules of a Weird World level: eat every human; each one pays into the blob's [Wallet].
 ##
 ## Deliberately knows nothing about nodes or scenes, so it can be unit-tested in isolation
 ## (see tests/unit/core/test_game_rules.gd). The [Level] scene owns one of these, tells it
-## how many humans it placed, calls [method eat_human] when the blob touches one, and
-## forwards the signals to the HUD and the rest of the game.
+## how many humans it placed and which wallet to pay, calls [method eat_human] when the blob
+## touches a human, and forwards the signals to the HUD and the rest of the game.
 ##
-## There is no clock (docs/gdd.md). Losing arrives with lives in Milestone 3; until then
-## [enum Outcome].LOST exists but nothing here produces it.
+## There is no clock (docs/gdd.md). [enum Outcome].LOST is what leaving a level early means;
+## nothing in the rules produces it.
 
-## Emitted every time the money changes.
-signal money_changed(money: int)
 ## Emitted every time a human is eaten: how many are left, out of how many there were.
 signal humans_changed(humans_left: int, humans_total: int)
-## Emitted exactly once, when the level is won (or, from Milestone 3, lost).
+## Emitted exactly once, when the level is won.
 signal finished(outcome: Outcome)
 
 enum Outcome { IN_PROGRESS, WON, LOST }
 
-var money: int = 0
+## Where the money goes. Owned by whoever outlives this level (see [Main]).
+var wallet: Wallet
 var humans_total: int
 var humans_left: int
 var outcome: Outcome = Outcome.IN_PROGRESS
 
 
-## `humans` is how many the level placed. A level with nothing to eat is finished before it
-## starts — no signal is emitted for that (nobody has connected yet), so the owner checks
-## [method is_finished] after wiring up.
-func _init(humans: int) -> void:
+## `humans` is how many the level placed; `money_goes_to` is the wallet each one pays into.
+## A level with nothing to eat is finished before it starts — no signal is emitted for that
+## (nobody has connected yet), so the owner checks [method is_finished] after wiring up.
+func _init(humans: int, money_goes_to: Wallet) -> void:
+	wallet = money_goes_to
 	humans_total = maxi(humans, 0)
 	humans_left = humans_total
 	if humans_left == 0:
@@ -40,9 +40,8 @@ func _init(humans: int) -> void:
 func eat_human(value: int) -> void:
 	if is_finished():
 		return
-	money += maxi(value, 0)
+	wallet.earn(value)
 	humans_left = maxi(humans_left - 1, 0)
-	money_changed.emit(money)
 	humans_changed.emit(humans_left, humans_total)
 	if humans_left == 0:
 		_finish(Outcome.WON)

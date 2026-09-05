@@ -64,13 +64,13 @@ Want to start *another* game like this one? Use the
 ```
 game/                 The game
   main.tscn/.gd       Screen flow: title → level → results
-  core/               Pure logic + data: PlatformerMotion, GameRules, LevelConfig, GameEvents bus
+  core/               Pure logic + data: PlatformerMotion, GameRules, Wallet, LevelConfig, GameEvents bus
   player/             The blob: a CharacterBody2D that asks PlatformerMotion where to go
   human/              A human: an Area2D that gets eaten for money
   level/              The hand-built level: floor, platforms, walls, humans, the rules and HUD
   ui/                 HUD, title, results, pause menu, shared theme
 tests/
-  unit/               Logic tests — no scene tree (PlatformerMotion, GameRules, LevelConfig)
+  unit/               Logic tests — no scene tree (PlatformerMotion, GameRules, Wallet, LevelConfig)
   integration/        Scene tests — real physics, real input (Player, Human, Level, UI, screen flow)
 addons/gut/           GUT 9.7.1 test framework (vendored, never edited)
 scripts/              setup.sh (developer setup), check_scripts.gd (the compile check)

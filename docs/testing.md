@@ -34,7 +34,8 @@ Folders mirror `game/`: `game/core/game_rules.gd` → `tests/unit/core/test_game
 
 | File | Covers |
 | --- | --- |
-| `tests/unit/core/test_game_rules.gd` | Money adds up, humans count down, the last human wins exactly once, nothing after the win, negative values, clamping (9 tests) |
+| `tests/unit/core/test_game_rules.gd` | Humans pay the wallet they were given, count down, the last human wins exactly once, nothing after the win, negative values, an empty level is born won (11 tests) |
+| `tests/unit/core/test_wallet.gd` | Earn adds and emits, fines subtract, never below $0, nothing-or-less is ignored, starting money (9 tests) |
 | `tests/unit/core/test_level_config.gd` | Defaults valid, `level_01.tres` loads with the designer's `human_value`, zero rejected |
 | `tests/unit/core/test_platformer_motion.gd` | Run speed and input clamping, gravity per step, fall cap reached and held, jump only from the floor, landing zeroes vertical speed, `configure()`, nonsense tunables clamped (13 tests) |
 | `tests/integration/player/test_player.gd` | Falls and lands on a `world`-layer floor, idle stays still, runs on `move_right` at `speed`, jumps on `jump`, no double jump, non-default tunables reach the motion even after `_ready` |
@@ -43,7 +44,7 @@ Folders mirror `game/`: `game/core/game_rules.gd` → `tests/unit/core/test_game
 | `tests/integration/ui/test_results_screen.gd` | Win/loss headings, buttons emit navigation signals |
 | `tests/integration/ui/test_title_screen.gd` | Play button emits `start_pressed` and has focus; the subtitle describes the current controls |
 | `tests/integration/ui/test_pause_menu.gd` | Visibility and tree pause follow `set_paused`, Resume un-pauses, Title screen emits `quit_pressed` (and decides nothing itself), `enabled = false` ignores the action |
-| `tests/integration/main/test_main.gd` | Screen flow title → level → results → retry/title, un-pause on every swap, deferred `game_over` |
+| `tests/integration/main/test_main.gd` | Screen flow title → level → results → retry/title, Main's level scene is the one played, money carries to the next level, the title screen starts a new job, un-pause on every swap, deferred `game_over` |
 | `tests/integration/level/test_level_flow.gd` | A whole level: the designer's human count (pinned once), HUD labels read through the level, every human paid the config's value, eating pays and emits exactly once, eating everyone wins exactly once and disables pausing, not won with one left, an empty level ends at once, a stray node under `Humans` is ignored, quitting from the pause menu ends the level as `LOST` with the money so far, pause; the world: player drops in and lands, every `World` child is solid, walls hold, every piece of ground is within one jump of a lower one, every human stands on something |
 
 ## Anatomy of a test script
@@ -52,18 +53,20 @@ Folders mirror `game/`: `game/core/game_rules.gd` → `tests/unit/core/test_game
 extends GutTest
 ## One line about what this file covers.
 
+var _wallet: Wallet
 var _rules: GameRules
 
 
 func before_each() -> void:          # runs before every test_ function
-	_rules = GameRules.new(3)
-	watch_signals(_rules)            # needed before any assert_signal_* on this object
+	_wallet = Wallet.new()
+	_rules = GameRules.new(3, _wallet)
+	watch_signals(_wallet)           # needed before any assert_signal_* on this object
 
 
-func test_eating_a_human_pays_and_emits_money_changed() -> void:
+func test_eating_a_human_pays_the_wallet() -> void:
 	_rules.eat_human(2)
-	assert_eq(_rules.money, 2)
-	assert_signal_emitted_with_parameters(_rules, "money_changed", [2])
+	assert_eq(_wallet.money, 2)
+	assert_signal_emitted_with_parameters(_wallet, "money_changed", [2])
 ```
 
 - Test scripts `extends GutTest` and have **no** `class_name`.

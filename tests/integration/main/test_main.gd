@@ -74,6 +74,33 @@ func test_retry_starts_a_new_level() -> void:
 	assert_true(_current_screen() is Level)
 
 
+func test_money_carries_from_one_level_to_the_next() -> void:
+	var level := await _start_game()
+	var wallet := level.wallet
+	wallet.earn(4)
+	GameEvents.game_over.emit(GameRules.Outcome.WON, wallet.money)
+	await wait_process_frames(2)
+	var results: ResultsScreen = _current_screen()
+	results.retry_pressed.emit()
+	await wait_process_frames(2)
+	var next := _current_screen() as Level
+	assert_not_null(next)
+	assert_same(next.wallet, wallet, "the same wallet is handed to the next level")
+	assert_eq(next.wallet.money, 4)
+
+
+func test_the_title_screen_starts_a_new_job_with_an_empty_wallet() -> void:
+	var level := await _start_game()
+	level.wallet.earn(4)
+	GameEvents.game_over.emit(GameRules.Outcome.LOST, 4)
+	await wait_process_frames(2)
+	var results: ResultsScreen = _current_screen()
+	results.title_pressed.emit()
+	await wait_process_frames(2)
+	var fresh := await _start_game()
+	assert_eq(fresh.wallet.money, 0)
+
+
 func test_title_pressed_returns_to_title() -> void:
 	await _start_game()
 	GameEvents.game_over.emit(GameRules.Outcome.LOST, 0)

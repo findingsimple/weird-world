@@ -17,13 +17,15 @@ func test_show_result_for_a_win() -> void:
 	var heading: Label = _screen.get_node("%Heading")
 	var money: Label = _screen.get_node("%MoneyLabel")
 	assert_eq(heading.text, "You ate everyone!")
-	assert_eq(money.text, "Money earned: $10")
+	assert_eq(money.text, "Money: $10")
 
 
-func test_show_result_for_a_loss() -> void:
+func test_show_result_for_leaving_early() -> void:
 	_screen.show_result(GameRules.Outcome.LOST, 4)
 	var heading: Label = _screen.get_node("%Heading")
-	assert_eq(heading.text, "Game over")
+	var money: Label = _screen.get_node("%MoneyLabel")
+	assert_eq(heading.text, "You clocked off early!")
+	assert_eq(money.text, "Money: $4", "the money is kept")
 
 
 func test_buttons_emit_navigation_signals() -> void:

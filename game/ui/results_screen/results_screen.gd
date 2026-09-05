@@ -19,10 +19,13 @@ func _ready() -> void:
 	_retry_button.grab_focus()
 
 
-## Fills in the heading and the money. Call after the screen is in the tree.
+## Fills in the heading and the blob's total money. Call after the screen is in the tree.
+## LOST means the player left the level early (the pause menu); there is no other way to lose.
 func show_result(outcome: GameRules.Outcome, money: int) -> void:
-	_heading.text = "You ate everyone!" if outcome == GameRules.Outcome.WON else "Game over"
-	_money_label.text = "Money earned: $%d" % money
+	_heading.text = (
+		"You ate everyone!" if outcome == GameRules.Outcome.WON else "You clocked off early!"
+	)
+	_money_label.text = "Money: $%d" % money
 
 
 func _on_retry_button_pressed() -> void:

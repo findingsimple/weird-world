@@ -1,31 +1,35 @@
 extends GutTest
 ## Unit tests for GameRules — pure logic, no scene tree needed.
 ##
-## A level has some humans in it. Eating one pays money; eating the last one wins.
+## A level has some humans in it. Eating one pays the wallet; eating the last one wins.
 
 const HUMANS := 3
 const VALUE := 2
 
+var _wallet: Wallet
 var _rules: GameRules
 
 
 func before_each() -> void:
-	_rules = GameRules.new(HUMANS)
+	_wallet = Wallet.new()
+	_rules = GameRules.new(HUMANS, _wallet)
 	watch_signals(_rules)
+	watch_signals(_wallet)
 
 
 func test_starts_broke_with_every_human_still_around() -> void:
-	assert_eq(_rules.money, 0)
+	assert_same(_rules.wallet, _wallet)
+	assert_eq(_wallet.money, 0)
 	assert_eq(_rules.humans_total, HUMANS)
 	assert_eq(_rules.humans_left, HUMANS)
 	assert_eq(_rules.outcome, GameRules.Outcome.IN_PROGRESS)
 	assert_false(_rules.is_finished())
 
 
-func test_eating_a_human_pays_and_emits_money_changed() -> void:
+func test_eating_a_human_pays_the_wallet() -> void:
 	_rules.eat_human(VALUE)
-	assert_eq(_rules.money, VALUE)
-	assert_signal_emitted_with_parameters(_rules, "money_changed", [VALUE])
+	assert_eq(_wallet.money, VALUE)
+	assert_signal_emitted_with_parameters(_wallet, "money_changed", [VALUE])
 
 
 func test_eating_a_human_counts_down_and_emits_humans_changed() -> void:
@@ -37,7 +41,13 @@ func test_eating_a_human_counts_down_and_emits_humans_changed() -> void:
 func test_money_adds_up() -> void:
 	_rules.eat_human(VALUE)
 	_rules.eat_human(5)
-	assert_eq(_rules.money, VALUE + 5)
+	assert_eq(_wallet.money, VALUE + 5)
+
+
+func test_a_wallet_with_money_in_it_keeps_it() -> void:
+	var rules := GameRules.new(HUMANS, Wallet.new(10))
+	rules.eat_human(VALUE)
+	assert_eq(rules.wallet.money, 10 + VALUE)
 
 
 func test_eating_the_last_human_wins_and_emits_finished_once() -> void:
@@ -60,19 +70,19 @@ func test_eating_after_the_level_is_won_changes_nothing() -> void:
 	for _i in HUMANS:
 		_rules.eat_human(VALUE)
 	_rules.eat_human(VALUE)
-	assert_eq(_rules.money, HUMANS * VALUE)
+	assert_eq(_wallet.money, HUMANS * VALUE)
 	assert_eq(_rules.humans_left, 0)
 	assert_signal_emit_count(_rules, "finished", 1)
 
 
 func test_a_human_is_never_worth_negative_money() -> void:
 	_rules.eat_human(-10)
-	assert_eq(_rules.money, 0)
+	assert_eq(_wallet.money, 0)
 	assert_eq(_rules.humans_left, HUMANS - 1, "it still counts as eaten")
 
 
 func test_a_level_with_no_humans_is_finished_before_it_starts() -> void:
-	var rules := GameRules.new(0)
+	var rules := GameRules.new(0, _wallet)
 	assert_eq(rules.humans_total, 0)
 	assert_eq(rules.humans_left, 0)
 	assert_eq(rules.outcome, GameRules.Outcome.WON)
@@ -80,6 +90,6 @@ func test_a_level_with_no_humans_is_finished_before_it_starts() -> void:
 
 
 func test_a_negative_human_count_means_none() -> void:
-	var rules := GameRules.new(-3)
+	var rules := GameRules.new(-3, _wallet)
 	assert_eq(rules.humans_total, 0)
 	assert_true(rules.is_finished())

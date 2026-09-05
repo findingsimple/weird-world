@@ -35,9 +35,10 @@ because that signal can arrive in the middle of a physics callback.
 
 | Class | File | Role |
 | --- | --- | --- |
-| `Main` | `game/main.gd` | Screen flow only. Owns the `LevelConfig` to play. |
-| `Level` | `game/level/level.gd` | One level. Counts its humans, owns `GameRules`, forwards rule signals to the bus. |
-| `GameRules` | `game/core/game_rules.gd` | **Pure logic** (`RefCounted`): money, humans left, win when all are eaten. No nodes. Unit-tested. |
+| `Main` | `game/main.gd` | Screen flow, the level scene and config to play, and the blob's `Wallet` — money outlives a level; the title screen starts a new job. |
+| `Level` | `game/level/level.gd` | One level. Counts its humans, owns `GameRules`, hands it the wallet `Main` gave it, forwards signals to the bus. |
+| `GameRules` | `game/core/game_rules.gd` | **Pure logic** (`RefCounted`): humans left, win when all are eaten; pays each human into the `Wallet`. Unit-tested. |
+| `Wallet` | `game/core/wallet.gd` | **Pure logic**: the blob's money — `earn`, `pay_fine` (never below $0). Unit-tested. |
 | `PlatformerMotion` | `game/core/platformer_motion.gd` | **Pure logic**: run speed, gravity, jump, fall cap — one `next_velocity()` call per physics frame. Unit-tested. |
 | `LevelConfig` | `game/core/level_config.gd` | `Resource` of tunables (`human_value`). Saved as `game/core/levels/level_01.tres`. |
 | `GameEventsBus` | `game/core/game_events.gd` | Autoload `GameEvents`. Signals only, no state. |
@@ -47,7 +48,7 @@ because that signal can arrive in the middle of a physics callback.
 | `TitleScreen`, `ResultsScreen` | `game/ui/...` | Emit navigation signals; contain no game logic. |
 | `PauseMenu` | `game/ui/pause_menu/pause_menu.gd` | Handles the `pause` action, pauses the tree, shows Resume and Title screen; emits `quit_pressed` up to `Level`. |
 
-The logic classes (`GameRules`, `PlatformerMotion`, `LevelConfig`) are `RefCounted`/`Resource`,
+The logic classes (`GameRules`, `Wallet`, `PlatformerMotion`, `LevelConfig`) are `RefCounted`/`Resource`,
 not nodes. That is deliberate: they run in a unit test in a millisecond with no scene
 tree, and they can be reused unchanged in a 3D version of the game.
 
@@ -58,7 +59,7 @@ Autoloaded as `GameEvents` (`project.godot` → `[autoload]`). Holds no state.
 | Signal | Emitted by | Listened to by |
 | --- | --- | --- |
 | `game_started(config: LevelConfig)` | `Level._ready` | (free for your own use: music, analytics, ...) |
-| `money_changed(money: int)` | `Level` (initial value, then on every `GameRules.money_changed`) | `Hud.set_money` |
+| `money_changed(money: int)` | `Level` (initial value, then on every `Wallet.money_changed`) | `Hud.set_money` |
 | `humans_changed(humans_left: int, humans_total: int)` | `Level` (initial value, then on every `GameRules.humans_changed`) | `Hud.set_humans` |
 | `game_over(outcome: GameRules.Outcome, money: int)` | `Level._on_rules_finished` | `Main._on_game_over` |
 | `pause_toggled(is_paused: bool)` | `PauseMenu.set_paused` | (free: dim music, etc.) |
@@ -74,9 +75,9 @@ Physics server detects overlap
   -> Human._on_body_entered: body is Player
   -> Human.eaten.emit(self); queue_free()
   -> Level._on_human_eaten(human)         (connected in Level._ready)
-  -> GameRules.eat_human(human.value)
-  -> GameRules.money_changed.emit(money); humans_changed.emit(left, total)
-  -> Level._on_rules_money_changed / _on_rules_humans_changed
+  -> GameRules.eat_human(human.value) -> Wallet.earn(value)
+  -> Wallet.money_changed.emit(money); GameRules.humans_changed.emit(left, total)
+  -> Level._on_wallet_money_changed / _on_rules_humans_changed
   -> GameEvents.money_changed.emit(money); GameEvents.humans_changed.emit(left, total)
   -> Hud.set_money / Hud.set_humans -> label text
   (if left == 0) GameRules.finished.emit(WON)
@@ -86,10 +87,13 @@ Physics server detects overlap
 
 Every hop is either a signal (up) or a plain method call (down).
 
-## Time and pausing
+## Money, time and pausing
 
-- There is no clock: a level ends when the last human is eaten (docs/gdd.md). Lives and
-  losing arrive with the ghost strawberries in Milestone 3.
+- The `Wallet` belongs to `Main`, not to the level: a level is rebuilt on every restart,
+  and money must survive that (a ghost strawberry's fine, Milestone 3). "Play again" keeps
+  the money; the title screen starts a new job with an empty wallet.
+- There is no clock: a level ends when the last human is eaten (docs/gdd.md). There are no
+  lives and no game over — you cannot lose your job, only money.
 - `PauseMenu` has `process_mode = Always`, so it still receives input when
   `get_tree().paused` is true — that is what lets Esc resume. Everything else in the
   level inherits the paused state and stops (`_process`, physics).

@@ -211,7 +211,7 @@ func test_every_human_stands_on_something() -> void:
 func test_eating_a_human_pays_its_value() -> void:
 	var total := _human_positions().size()
 	await _eat_at(_human_positions()[0])
-	assert_eq(_level.get_rules().money, HUMAN_VALUE)
+	assert_eq(_level.wallet.money, HUMAN_VALUE)
 	assert_eq(_level.get_humans_left(), total - 1)
 	assert_signal_emitted_with_parameters(GameEvents, "money_changed", [HUMAN_VALUE])
 	assert_signal_emit_count(GameEvents, "money_changed", 2, "once at start, once per human")
@@ -237,6 +237,22 @@ func test_level_is_not_won_while_a_human_is_left() -> void:
 		await _eat_at(spots[i])
 	assert_eq(_level.get_humans_left(), 1)
 	assert_signal_not_emitted(GameEvents, "game_over")
+
+
+func test_a_level_given_a_wallet_adds_to_it_and_shows_it() -> void:
+	var level := _make_level()
+	var wallet := Wallet.new(5)
+	level.wallet = wallet
+	add_child_autofree(level)
+	var hud: Hud = level.get_node("Hud")
+	var money: Label = hud.get_node("%MoneyLabel")
+	assert_eq(money.text, "$5", "the HUD shows what the blob already had")
+	var humans: Node2D = level.get_node("Humans")
+	var first: Human = humans.get_child(0)
+	level.get_player().position = first.position
+	await wait_physics_frames(3)
+	assert_eq(wallet.money, 5 + HUMAN_VALUE)
+	assert_same(level.get_rules().wallet, wallet, "the rules pay into the wallet they were given")
 
 
 func test_a_level_with_no_humans_ends_as_soon_as_it_starts() -> void:
