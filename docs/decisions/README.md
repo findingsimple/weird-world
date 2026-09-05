@@ -52,3 +52,4 @@ One line each: **option** — why not.
 | [0012](0012-humans-money-no-clock.md) | Hand-placed humans, money, no clock; eating everyone ends the level |
 | [0013](0013-wallet-owned-by-main.md) | The blob's money lives in a `Wallet` owned by `Main`; it survives level restarts |
 | [0014](0014-strawberry-patrol-and-stomp.md) | Ghost strawberries: `Patrol`, `EnemyContact` stomp-or-touch, fine and restart |
+| [0015](0015-versioned-web-asset-names.md) | Web assets renamed per build so a stale browser cache cannot hide a release |

@@ -14,7 +14,8 @@ every human on it for money, stomps ghost strawberries for more, and pays a fine
 restarts) if one catches it. No clock, no lives. Next: the ghost cake boss (Milestone 4).
 
 **Play in the browser:** <https://findingsimple.github.io/weird-world/> — rebuilt and
-published by the Web workflow on every push to `main`. Or `make run` for a native window.
+published by the Web workflow on every push to `main`; a push is live for everyone within
+about ten minutes. Or `make run` for a native window.
 
 ## Why this exists
 

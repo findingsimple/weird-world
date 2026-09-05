@@ -156,6 +156,10 @@ Tools must already be installed (`make setup` does it): `godot` 4.7.2 on PATH, `
   dependent script's compile.
 - GUT helpers such as `get_signal_emit_count()` return `Variant`; `:=` cannot infer it, so
   write the type (`var n: int = ...`) or the whole test file fails to parse.
+- Web assets are renamed per build (`index-<sha>.pck` etc.) by `scripts/version_web_assets.sh`,
+  run from `make export-web`, because browsers cache Godot's fixed-name `.wasm`/`.pck` for
+  hours. Never hard-code `index.pck` anywhere; the Pages CDN still holds `index.html` for
+  10 minutes, so "not live yet" within that window is normal.
 - Some tests await real time — walls (1.2 s), strawberry turns (1.7 s), the caught pause
   (0.8 s each), pop text (0.8 s), strawberries patrolling (1.5 s). Add one only when the
   behaviour genuinely takes time, and keep it as short as the physics allows.

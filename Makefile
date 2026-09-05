@@ -20,6 +20,9 @@ GD_DIRS := game tests scripts
 GUT_ARGS ?=
 WEB_PORT ?= 8060
 WEB_BIND ?= 127.0.0.1
+# Per-build suffix for the Web assets (index-<WEB_VERSION>.pck ...), so browsers can never
+# serve a stale build. CI passes the commit SHA; outside a git checkout it falls back to a timestamp.
+WEB_VERSION ?= $(shell git rev-parse --short=7 HEAD 2>/dev/null || date +%s)
 BUILD_DIR := build
 
 .PHONY: help setup version import check lint format test run export-web export-all serve-web clean ci
@@ -65,9 +68,11 @@ test: import ## Run the GUT test suite headless (JUnit XML -> reports/results.xm
 run: import ## Run the game (main scene) in a window
 	$(GODOT) --path .
 
-export-web: version import ## Export the Web build to build/web/
+export-web: version import ## Export the Web build to build/web/ with per-build asset names (WEB_VERSION=)
 	@mkdir -p $(BUILD_DIR)/web && touch $(BUILD_DIR)/.gdignore
+	@find $(BUILD_DIR)/web -name 'index-*.*' -delete
 	$(GODOT) --headless --path . --export-release "Web" $(BUILD_DIR)/web/index.html
+	./scripts/version_web_assets.sh $(BUILD_DIR)/web $(WEB_VERSION)
 
 export-all: export-web ## Export Web + Windows + Linux + macOS builds to build/
 	@mkdir -p $(BUILD_DIR)/windows $(BUILD_DIR)/linux $(BUILD_DIR)/macos

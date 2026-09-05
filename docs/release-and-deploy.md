@@ -39,7 +39,7 @@ create and approve pull requests* must be on, or release-please cannot open its 
 ## Local exports
 
 ```sh
-make export-web      # build/web/index.html + .wasm + .pck
+make export-web      # build/web/index.html + index-<sha>.wasm/.pck/... (WEB_VERSION= to override)
 make serve-web       # http://localhost:8060 — play it in a browser
 make export-all      # + build/windows/*.exe, build/linux/*.x86_64, build/macos/*.zip
 ```
@@ -61,6 +61,14 @@ text; harmless.)
 - The project uses the **Compatibility** renderer (`gl_compatibility`) because it is
   the only one that runs on the Web (WebGL 2).
 - PWA is off. Turn it on in the preset if you want an installable app.
+- **Asset names are versioned per build.** Godot writes `index.js` / `.wasm` / `.pck` with fixed
+  names, and browsers cache a 39 MB `.wasm` for as long as they like — so a new release can
+  look like nothing changed (it did, on 2026-09-05, for hours). `make export-web` therefore
+  runs `scripts/version_web_assets.sh`, which renames them to `index-<WEB_VERSION>.*` and
+  patches `index.html`, then proves no unversioned reference survived. CI passes the commit
+  SHA as `WEB_VERSION`; locally it is `git rev-parse --short HEAD`. GitHub Pages caches
+  `index.html` itself for 10 minutes, so a push is live for everyone within about ten minutes,
+  and nothing older can be served after that.
 
 ### GitHub Pages
 
@@ -153,9 +161,13 @@ Or do it by hand: `make export-all`, zip each `build/<platform>/` folder, then
 Actions to create and approve pull requests". Also: only `feat:`/`fix:`/`!` commits trigger
 a release; `docs:`/`chore:` alone never will.
 
-**GitHub Pages serves an old or broken build.** Re-run `Web` via *workflow_dispatch*. Confirm
-Settings → Pages → Source is *GitHub Actions* and the repository is public (the deploy job
-is skipped for private repos). Browsers cache the old `.wasm` aggressively — hard-reload.
+**GitHub Pages serves an old build.** First check it really does: `curl -s <page>/index.html |
+grep -o 'index-[0-9a-f]*\.js'` names the commit the *server* is on; the `Web` run's last step
+prints the same. If the server is current, the browser is holding `index.html` from within
+the CDN's 10-minute window — wait it out or hard-reload once; the assets themselves are
+versioned, so nothing older than that can ever be served. If the server is stale, re-run
+`Web` via *workflow_dispatch* and confirm Settings → Pages → Source is *GitHub Actions* and
+the repository is public (the deploy job is skipped for private repos).
 
 **The release PR's CI shows "action required".** GitHub asks a human to approve workflow
 runs for PRs opened by the Actions bot. Approve it from the PR's checks tab, or just merge —
