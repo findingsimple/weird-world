@@ -2,7 +2,9 @@
 
 A lightweight GDD: one page that answers "what are we making and why is it fun?"
 before any code. Copy this file to `docs/gdd.md` for your game, keep it current, and
-link it from the README. The example below is filled in for Weird World.
+link it from the README. The example below is filled in for Coin Dash, the small
+top-down example game this project was created from; Weird World's real GDD is
+[gdd.md](gdd.md).
 
 Tip: write the **Core loop** and **Rules** sections first. If you can't write them in
 a few lines, the game is not clear yet.
@@ -11,7 +13,7 @@ a few lines, the game is not clear yet.
 
 ## Title
 
-Weird World
+Coin Dash (the example game)
 
 ## One-liner
 

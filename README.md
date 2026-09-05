@@ -91,7 +91,7 @@ Start at [docs/README.md](docs/README.md). Highlights:
   [Release & deploy](docs/release-and-deploy.md)
 - [Working with Claude](docs/working-with-claude.md) — how we pair with Claude Code on this repo
 - [Your first change](docs/first-change.md) — a tutorial for new (and young) developers
-- [Glossary](docs/glossary.md) · [GDD template](docs/gdd-template.md) ·
+- [Glossary](docs/glossary.md) · [Game design doc](docs/gdd.md) · [GDD template](docs/gdd-template.md) ·
   [Decisions (ADRs)](docs/decisions/README.md) — why Godot, why GUT, why single-threaded web, …
 
 ## Licence

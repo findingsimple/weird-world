@@ -13,7 +13,8 @@ how to learn from it. Each doc is short and focused; read what you need.
 | [testing.md](testing.md) | GUT tests: where they live, how to run them, how to write new ones |
 | [release-and-deploy.md](release-and-deploy.md) | Versioning, releases, exports, GitHub Pages, and bumping Godot |
 | [glossary.md](glossary.md) | Plain-language definitions of the words used everywhere else |
-| [gdd-template.md](gdd-template.md) | A lightweight game design document template (filled in for Weird World) |
+| [gdd.md](gdd.md) | **The Weird World design document** — what we are making and its rules; keep it current |
+| [gdd-template.md](gdd-template.md) | The GDD template, filled in for the Coin Dash example game the project started from |
 | [decisions/](decisions/README.md) | Architecture Decision Records: *why* things are the way they are |
 
 ## Suggested reading order
