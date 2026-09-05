@@ -16,7 +16,7 @@ extends Resource
 @export_range(1, 100) var max_coins: int = 5
 ## Score gained per coin.
 @export_range(1, 100) var coin_value: int = 1
-## Coins never spawn (and the player cannot move) closer than this to the arena edge.
+## Coins never spawn closer than this to the edge of the level's coin area (`Level.arena`).
 @export_range(0.0, 200.0) var arena_margin: float = 24.0
 ## Coins try not to spawn closer than this to the player.
 @export_range(0.0, 400.0) var min_spawn_distance_from_player: float = 48.0

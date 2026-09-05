@@ -24,8 +24,11 @@ The player's speed is a number in one file.
    make run
    ```
 
-Press Play and move with WASD or the arrow keys. Twice as fast! Try `60.0` too — too
-slow to win? That is game design: you just tuned the difficulty.
+Press Play and run with A/D or the arrow keys; Space jumps. Twice as fast! Try `60.0`
+too — too slow to be fun? That is game design: you just tuned the feel.
+
+Now try `jump_velocity` (a few lines down). `500.0` is a super-jump; `150.0` cannot reach
+the low platform. And `gravity` at `200.0` turns the blob into a blob on the moon.
 
 *Another way:* open the project in Godot, open `player.tscn`, click the `Player` node,
 and change **Speed** in the Inspector on the right. Same number, no code.

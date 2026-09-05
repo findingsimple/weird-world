@@ -1,7 +1,6 @@
 # Architecture
 
-How the example game ("Weird World") is put together, and the rules that keep it easy to
-change. Everything here carries over to your own game.
+How Weird World is put together, and the rules that keep it easy to change.
 
 ## One rule: signal up, call down
 
@@ -20,8 +19,9 @@ Main (game/main.tscn)                     flow: title -> level -> results -> (le
     ├── TitleScreen                       emits start_pressed
     ├── Level (game/level/level.tscn)     one round
     │   ├── Background, ArenaEdge         visual only
+    │   ├── World                         Floor, platforms, edge walls: StaticBody2D on layer `world`
     │   ├── Coins                         container for spawned Coin scenes
-    │   ├── Player                        CharacterBody2D, reads input
+    │   ├── Player                        CharacterBody2D, reads input, owns a PlatformerMotion
     │   ├── SpawnTimer                    Timer -> Level._on_spawn_timer_timeout
     │   ├── Hud                           CanvasLayer, listens to GameEvents
     │   └── PauseMenu                     CanvasLayer, process_mode = Always
@@ -40,15 +40,16 @@ because that signal can arrive in the middle of a physics callback.
 | `Level` | `game/level/level.gd` | One round. Owns `GameRules` + `CoinSpawner`, spawns coins, forwards rule signals to the bus. |
 | `GameRules` | `game/core/game_rules.gd` | **Pure logic** (`RefCounted`): score, countdown, win/lose. No nodes. Unit-tested. |
 | `CoinSpawner` | `game/core/coin_spawner.gd` | **Pure logic**: picks spawn positions. RNG is injected so tests can seed it. |
+| `PlatformerMotion` | `game/core/platformer_motion.gd` | **Pure logic**: run speed, gravity, jump, fall cap — one `next_velocity()` call per physics frame. Unit-tested. |
 | `LevelConfig` | `game/core/level_config.gd` | `Resource` of tunables (`target_score`, `duration_seconds`, ...). Saved as `game/core/levels/level_01.tres`. |
 | `GameEventsBus` | `game/core/game_events.gd` | Autoload `GameEvents`. Signals only, no state. |
-| `Player` | `game/player/player.gd` | `CharacterBody2D`; moves from `Input.get_vector`, clamped to `bounds`. |
+| `Player` | `game/player/player.gd` | `CharacterBody2D`; reads `move_left`/`move_right`/`jump`, asks `PlatformerMotion` for a velocity, `move_and_slide()`. |
 | `Coin` | `game/coin/coin.gd` | `Area2D`; bobs, emits `collected` when a `Player` overlaps, frees itself. |
 | `Hud` | `game/ui/hud/hud.gd` | Score and time labels bound to the bus. |
 | `TitleScreen`, `ResultsScreen` | `game/ui/...` | Emit navigation signals; contain no game logic. |
 | `PauseMenu` | `game/ui/pause_menu/pause_menu.gd` | Handles the `pause` action, pauses the tree, shows Resume. |
 
-The logic classes (`GameRules`, `CoinSpawner`, `LevelConfig`) are `RefCounted`/`Resource`,
+The logic classes (`GameRules`, `CoinSpawner`, `PlatformerMotion`, `LevelConfig`) are `RefCounted`/`Resource`,
 not nodes. That is deliberate: they run in a unit test in a millisecond with no scene
 tree, and they can be reused unchanged in a 3D version of the game.
 
@@ -97,6 +98,20 @@ Every hop is either a signal (up) or a plain method call (down).
   `get_tree().paused` is true — that is what lets Esc resume. Everything else in the
   level inherits the paused state and stops (timers, `_process`, physics).
 - When the round ends, `Level` disables the pause menu (`_pause_menu.enabled = false`).
+
+## Physics layers
+
+Named in `project.godot` → `[layer_names]`. A body is *on* its `collision_layer` and
+*looks for* the layers in its `collision_mask`.
+
+| Layer (bit value) | Name | Who is on it | Who looks for it |
+| --- | --- | --- | --- |
+| 1 (1) | `player` | `Player` | `Coin` (mask 1) |
+| 2 (2) | `pickups` | `Coin` | nobody — an `Area2D` detects, it is not detected |
+| 3 (4) | `world` | floor, platforms and edge walls (`StaticBody2D`) | `Player` (mask 4) |
+
+Anything solid the blob should stand on goes on `world`. Otherwise it falls straight
+through — the most common "why doesn't my platform work?" answer.
 
 ## Files Godot creates — what to commit
 

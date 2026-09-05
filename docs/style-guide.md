@@ -75,10 +75,10 @@ Two blank lines between functions (gdformat does this for you).
   sensible bounds.
 - `@onready var _label: Label = %UniqueName` for child references; mark the node
   *Access as Unique Name* in the scene. No `get_node("Path/To/Deep/Node")` chains.
-- Signals up, calls down (see `architecture.md`). Pass dependencies in — `Level`
-  hands `Player` its `bounds`; `CoinSpawner` receives its RNG.
+- Signals up, calls down (see `architecture.md`). Pass dependencies in — `Player`
+  hands `PlatformerMotion` its tunables; `CoinSpawner` receives its RNG.
 - Put rules and math in `RefCounted` classes, not in nodes, so they can be unit-tested
-  without a scene tree. `GameRules` and `CoinSpawner` are the pattern.
+  without a scene tree. `GameRules`, `CoinSpawner` and `PlatformerMotion` are the pattern.
 - Small functions that do one thing. If you need a comment to explain *what* a block
   does, extract a function named after it; keep comments for *why*.
 

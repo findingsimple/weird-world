@@ -1,16 +1,19 @@
 class_name Level
 extends Node2D
-## One round of Weird World: the arena, the player, the coins, the clock.
+## One round of Weird World: the ground to stand on, the player, the coins, the clock.
 ##
 ## Owns a [GameRules] (the logic) and a [CoinSpawner] (where coins appear), spawns coins
 ## on a timer, and forwards the rules' signals to [GameEventsBus] so the HUD and [Main]
-## can react. Pausing is handled by the child [PauseMenu].
+## can react. Pausing is handled by the child [PauseMenu]. The floor, the platforms and
+## the player's start are placed by hand in level.tscn — that is level design.
 
 ## Tunables for this round. [Main] sets this before adding the level to the tree.
 @export var config: LevelConfig
 ## The coin to spawn.
 @export var coin_scene: PackedScene
-## Play area in Level's local coordinates. Matches the project's 640x360 viewport by default.
+## Where coins may appear, in Level's local coordinates (shrunk by the config's `arena_margin`).
+## level.tscn sets it to the strip above the floor that the blob can actually jump to; the
+## default is the whole 640x360 viewport.
 @export var arena: Rect2 = Rect2(0, 0, 640, 360)
 ## Random seed for coin positions. 0 means "different every time"; tests set a fixed seed.
 @export var rng_seed: int = 0
@@ -41,11 +44,9 @@ func _ready() -> void:
 		rng.seed = rng_seed
 	_spawner = CoinSpawner.new(rng)
 
-	var playable := arena.grow(-config.arena_margin)
-	_player.bounds = playable
-	_player.position = arena.get_center()
-	_arena_edge.position = playable.position
-	_arena_edge.size = playable.size
+	var spawn_area := arena.grow(-config.arena_margin)
+	_arena_edge.position = spawn_area.position
+	_arena_edge.size = spawn_area.size
 
 	_rules = GameRules.new(config.target_score, config.duration_seconds)
 	_rules.score_changed.connect(_on_rules_score_changed)

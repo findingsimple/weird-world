@@ -21,3 +21,11 @@ func test_play_button_emits_start_pressed() -> void:
 func test_play_button_has_focus_for_keyboard_users() -> void:
 	var play: Button = _screen.get_node("%PlayButton")
 	assert_true(play.has_focus())
+
+
+func test_subtitle_explains_the_platformer_controls() -> void:
+	# The first thing a player reads. It went stale once when the controls changed.
+	var subtitle: Label = _screen.get_node("%Subtitle")
+	assert_string_contains(subtitle.text, "jump")
+	assert_string_contains(subtitle.text, "Esc")
+	assert_false("WASD" in subtitle.text, "there is no up/down movement any more")

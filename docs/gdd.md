@@ -79,11 +79,18 @@ What the blob can *do*.
 
 ## Scope
 
-**Milestone 1 — the blob can jump** (start here)
+**Milestone 1 — the blob can jump** (done 2026-09-05)
 
-- Gravity and a `jump` action; platforms you can stand on; a camera that follows the blob
-- One hand-built test level (`game/core/levels/level_01.tres` + a level scene)
+- Gravity and a `jump` action; a floor, two platforms and invisible walls at the screen edges
+- One hand-built screen (`game/level/level.tscn`; its numbers in `game/core/levels/level_01.tres`)
 - Title screen → level → results, pause — reused from the template
+- Still the template's coins and clock, spawning only in the strip the blob can reach.
+  Milestone 2 replaces them.
+
+**Milestone 1b — a wider world**
+
+- A camera that follows the blob, and a level wider than one screen. Deferred from
+  Milestone 1 because the first level fits in 640×360, so a camera had nothing to do.
 
 **Milestone 2 — a job**
 

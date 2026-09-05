@@ -37,14 +37,15 @@ Folders mirror `game/`: `game/core/game_rules.gd` → `tests/unit/core/test_game
 | `tests/unit/core/test_game_rules.gd` | Score, win, timeout, lose, whole-second ticks, clamping of bad inputs (11 tests) |
 | `tests/unit/core/test_coin_spawner.gd` | Positions stay inside the arena, seeded determinism, avoidance radius, exhausted retries |
 | `tests/unit/core/test_level_config.gd` | Defaults valid, `level_01.tres` loads, invalid values rejected |
-| `tests/integration/player/test_player.gd` | Moves on `move_right`, idle stays still, diagonal not faster, clamped to bounds |
+| `tests/unit/core/test_platformer_motion.gd` | Run speed and input clamping, gravity per step, fall cap reached and held, jump only from the floor, landing zeroes vertical speed, `configure()`, nonsense tunables clamped (13 tests) |
+| `tests/integration/player/test_player.gd` | Falls and lands on a `world`-layer floor, idle stays still, runs on `move_right` at `speed`, jumps on `jump`, no double jump, non-default tunables reach the motion even after `_ready` |
 | `tests/integration/coin/test_coin.gd` | Emits `collected` on player overlap, frees itself, ignores a non-player `CharacterBody2D` that *is* overlapping (positive control) |
 | `tests/integration/ui/test_hud.gd` | Labels follow `GameEvents`; setters format text |
 | `tests/integration/ui/test_results_screen.gd` | Win/loss headings, buttons emit navigation signals |
-| `tests/integration/ui/test_title_screen.gd` | Play button emits `start_pressed` |
+| `tests/integration/ui/test_title_screen.gd` | Play button emits `start_pressed` and has focus; the subtitle describes the current controls |
 | `tests/integration/ui/test_pause_menu.gd` | Visibility and tree pause follow `set_paused`, Resume un-pauses, `enabled = false` ignores the action |
 | `tests/integration/main/test_main.gd` | Screen flow title → level → results → retry/title, un-pause on every swap, deferred `game_over` |
-| `tests/integration/level/test_level_flow.gd` | A whole fast round: spawns up to exactly `max_coins`, `coin_value` scoring, win, timeout, cleanup after the round, player bounds from config, pause |
+| `tests/integration/level/test_level_flow.gd` | A whole fast round: spawns up to exactly `max_coins`, `coin_value` scoring, win, timeout, cleanup after the round, pause; the world: player drops in and lands, every `World` child is solid, walls hold, each platform step is within a jump, coins spawn within reach |
 
 ## Anatomy of a test script
 
@@ -104,9 +105,16 @@ func before_each() -> void:
 - `add_child_autofree(node)` puts the node in the tree and frees it in teardown. Use
   it for everything you instantiate; orphaned nodes show up as "Orphans" in the run
   summary.
+- A `CharacterBody2D` with gravity needs something to stand on, or it falls out of the
+  test: `test_player.gd`'s `_make_ground()` builds a `StaticBody2D` on the `world` layer
+  (bit value 4) under the player, and `_land()` waits for the landing before asserting.
 - Physics (overlaps, `move_and_slide`) only happens on physics frames:
   `await wait_physics_frames(3)`. Timers and `_process` need real time:
   `await wait_seconds(0.3)`. Keep waits short — the level test uses a 0.5 s round.
+- `wait_physics_frames(n)` is *about* n steps of your node, not exactly n — GUT's counter
+  and your node run in different slots of a step. To measure something per frame, bracket
+  the wait with `Engine.get_physics_frames()` and divide by the steps that really ran
+  (see `test_tunables_drive_the_motion_even_after_ready`).
 - Signals from the autoload bus: `watch_signals(GameEvents)` **before** adding the
   scene, because `Level._ready` emits immediately. GUT clears watched signals between
   tests.
@@ -129,10 +137,12 @@ func after_each() -> void:
 	_sender.clear()
 
 
-func test_moves_right_while_move_right_held() -> void:
+func test_runs_right_while_move_right_held() -> void:
+	await _land()
+	var resting := _player.position
 	_sender.action_down("move_right")
 	await wait_physics_frames(10)
-	assert_gt(_player.position.x, START.x)
+	assert_gt(_player.position.x, resting.x)
 ```
 
 Events sent through `Input` are delivered on the next frame. The pause test cannot

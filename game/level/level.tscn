@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://game/level/level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://game/coin/coin.tscn" id="2_coin"]
@@ -6,9 +6,19 @@
 [ext_resource type="PackedScene" path="res://game/ui/hud/hud.tscn" id="4_hud"]
 [ext_resource type="PackedScene" path="res://game/ui/pause_menu/pause_menu.tscn" id="5_pause"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
+size = Vector2(640, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_platform"]
+size = Vector2(96, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
+size = Vector2(16, 360)
+
 [node name="Level" type="Node2D"]
 script = ExtResource("1_level")
 coin_scene = ExtResource("2_coin")
+arena = Rect2(0, 264, 640, 96)
 
 [node name="Background" type="ColorRect" parent="."]
 offset_right = 640.0
@@ -18,17 +28,83 @@ color = Color(0.16, 0.18, 0.27, 1)
 
 [node name="ArenaEdge" type="ReferenceRect" parent="."]
 offset_left = 24.0
-offset_top = 24.0
+offset_top = 288.0
 offset_right = 616.0
 offset_bottom = 336.0
 mouse_filter = 2
 border_color = Color(0.3, 0.34, 0.5, 1)
 editor_only = false
 
+[node name="World" type="Node2D" parent="."]
+
+[node name="Floor" type="StaticBody2D" parent="World"]
+position = Vector2(320, 352)
+collision_layer = 4
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Floor"]
+shape = SubResource("RectangleShape2D_floor")
+
+[node name="ColorRect" type="ColorRect" parent="World/Floor"]
+offset_left = -320.0
+offset_top = -8.0
+offset_right = 320.0
+offset_bottom = 8.0
+mouse_filter = 2
+color = Color(0.36, 0.25, 0.2, 1)
+
+[node name="LowPlatform" type="StaticBody2D" parent="World"]
+position = Vector2(200, 304)
+collision_layer = 4
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/LowPlatform"]
+shape = SubResource("RectangleShape2D_platform")
+
+[node name="ColorRect" type="ColorRect" parent="World/LowPlatform"]
+offset_left = -48.0
+offset_top = -8.0
+offset_right = 48.0
+offset_bottom = 8.0
+mouse_filter = 2
+color = Color(0.36, 0.25, 0.2, 1)
+
+[node name="HighPlatform" type="StaticBody2D" parent="World"]
+position = Vector2(310, 256)
+collision_layer = 4
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/HighPlatform"]
+shape = SubResource("RectangleShape2D_platform")
+
+[node name="ColorRect" type="ColorRect" parent="World/HighPlatform"]
+offset_left = -48.0
+offset_top = -8.0
+offset_right = 48.0
+offset_bottom = 8.0
+mouse_filter = 2
+color = Color(0.36, 0.25, 0.2, 1)
+
+[node name="LeftWall" type="StaticBody2D" parent="World"]
+position = Vector2(-8, 180)
+collision_layer = 4
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/LeftWall"]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="RightWall" type="StaticBody2D" parent="World"]
+position = Vector2(648, 180)
+collision_layer = 4
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/RightWall"]
+shape = SubResource("RectangleShape2D_wall")
+
 [node name="Coins" type="Node2D" parent="."]
 
 [node name="Player" parent="." instance=ExtResource("3_player")]
-position = Vector2(320, 180)
+position = Vector2(64, 300)
 
 [node name="SpawnTimer" type="Timer" parent="."]
 

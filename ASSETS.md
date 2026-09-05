@@ -12,17 +12,17 @@ How art, audio and other assets are handled in this template, and how to add you
 Assets you add keep whatever licence their author gave them — record it in the credits
 table below. Keep the split explicit: a game's code being MIT does not make its art MIT.
 
-## The text-only rule (and why)
+## Placeholders are text (and why)
 
-Every asset in this template is a hand-written **SVG**. There are no PNGs, no audio, no
-fonts, no Git LFS. Reasons:
+The placeholder sprites are hand-written **SVG**: text files that diff, merge and review
+like code, that Claude can read and edit, and that Godot imports natively (`*.svg.import`
+sidecars are committed next to each file). In the template this game came from that was an
+absolute rule (template repositories cannot use Git LFS). Here it is a convention:
 
-- **GitHub template repositories cannot contain Git LFS objects**, so binary-heavy
-  templates either bloat the repo or break "Use this template".
-- Text assets diff, merge and review like code — and Claude can read and edit them.
-- Godot imports SVG natively (`*.svg.import` sidecars are committed next to each file).
-
-The rule is for the *template*. Your game will have real art; see below.
+- Keep placeholders as SVG until real art replaces them.
+- Real art, audio and design files (like the concept book in `docs/design/`) are welcome,
+  under pre-commit's size limit (`--maxkb` in `.pre-commit-config.yaml`) and with a row in
+  the credits table below. Still no Git LFS.
 
 ## How Godot treats an asset
 
@@ -59,3 +59,4 @@ the commit — raise the limit in `.pre-commit-config.yaml` deliberately, or shr
 | Asset | Author | Source | Licence |
 |---|---|---|---|
 | `icon.svg`, `game/player/player.svg`, `game/coin/coin.svg` | findingsimple | this repository | CC0 1.0 |
+| `docs/design/weird_world.pdf` (the concept book) | the Weird World designer | this repository | © the author, all rights reserved — a design document, not shipped in the game |

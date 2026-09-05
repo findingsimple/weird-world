@@ -52,11 +52,13 @@ the last one, in seconds.
 
 **CharacterBody2D** — a physics body you move yourself from code (the player).
 **Area2D** — detects overlaps but does not push anything (the coin).
-**StaticBody2D** — a body that never moves (walls).
+**StaticBody2D** — a body that never moves (the floor, the platforms, the invisible walls).
 
 **Collision layer vs mask** — *layer* is what a body *is* (the player is on layer 1,
-coins on layer 2). *Mask* is what it *looks for* (the coin's mask is 1: it notices the
-player). Named in `project.godot` → `[layer_names]`.
+coins on layer 2, the floor and platforms on layer 3, `world`). *Mask* is what it *looks
+for* (the coin's mask is 1: it notices the player; the player's mask is 4: it bumps into
+the world). A layer's *bit value* doubles each time: layer 1 = 1, layer 2 = 2, layer 3 = 4.
+Named in `project.godot` → `[layer_names]`.
 
 **`@export`** — marks a script variable as editable in the editor's Inspector (and
 saved in the scene). `speed` on the player is one.
