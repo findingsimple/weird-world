@@ -15,8 +15,12 @@ extends CharacterBody2D
 @export_range(1.0, 3000.0, 1.0) var gravity: float = 980.0
 ## Falling never gets faster than this, so big drops stay controllable.
 @export_range(1.0, 2000.0, 1.0) var max_fall_speed: float = 400.0
+## How hard the blob bounces back up after squishing something.
+@export_range(0.0, 1000.0, 1.0) var stomp_bounce: float = 200.0
 
 var _motion: PlatformerMotion
+
+@onready var _collider: CollisionShape2D = $CollisionShape2D
 
 
 func _ready() -> void:
@@ -29,3 +33,17 @@ func _physics_process(delta: float) -> void:
 	var jump_pressed := Input.is_action_just_pressed("jump")
 	velocity = _motion.next_velocity(velocity, input_x, jump_pressed, is_on_floor(), delta)
 	move_and_slide()
+
+
+## The y of the blob's feet (the bottom of its collision box), in global coordinates.
+func feet_y() -> float:
+	var box := _collider.shape as RectangleShape2D
+	if box == null:
+		push_error("Player's collider is not a RectangleShape2D; using its centre as the feet")
+		return _collider.global_position.y
+	return _collider.global_position.y + box.size.y * 0.5
+
+
+## Kicks the blob upward, as after squishing a ghost strawberry.
+func bounce() -> void:
+	velocity.y = -stomp_bounce

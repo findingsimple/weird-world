@@ -1,10 +1,11 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://game/level/level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://game/human/human.tscn" id="2_human"]
 [ext_resource type="PackedScene" path="res://game/player/player.tscn" id="3_player"]
 [ext_resource type="PackedScene" path="res://game/ui/hud/hud.tscn" id="4_hud"]
 [ext_resource type="PackedScene" path="res://game/ui/pause_menu/pause_menu.tscn" id="5_pause"]
+[ext_resource type="PackedScene" path="res://game/strawberry/strawberry.tscn" id="6_strawberry"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
 size = Vector2(640, 16)
@@ -106,6 +107,15 @@ position = Vector2(460, 337)
 
 [node name="Human5" parent="Humans" instance=ExtResource("2_human")]
 position = Vector2(580, 337)
+
+[node name="Strawberries" type="Node2D" parent="."]
+
+[node name="FloorStrawberry" parent="Strawberries" instance=ExtResource("6_strawberry")]
+position = Vector2(520, 338)
+
+[node name="PlatformStrawberry" parent="Strawberries" instance=ExtResource("6_strawberry")]
+position = Vector2(340, 242)
+start_direction = 1
 
 [node name="Player" parent="." instance=ExtResource("3_player")]
 position = Vector2(64, 300)

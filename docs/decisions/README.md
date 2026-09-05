@@ -51,3 +51,4 @@ One line each: **option** — why not.
 | [0011](0011-platformer-motion-and-world-layer.md) | Platformer physics in a `RefCounted`, solid ground on a `world` layer, hand-built levels |
 | [0012](0012-humans-money-no-clock.md) | Hand-placed humans, money, no clock; eating everyone ends the level |
 | [0013](0013-wallet-owned-by-main.md) | The blob's money lives in a `Wallet` owned by `Main`; it survives level restarts |
+| [0014](0014-strawberry-patrol-and-stomp.md) | Ghost strawberries: `Patrol`, `EnemyContact` stomp-or-touch, fine and restart |

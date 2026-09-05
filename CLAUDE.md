@@ -45,8 +45,9 @@ Tools must already be installed (`make setup` does it): `godot` 4.7.2 on PATH, `
 3. **Member order** is enforced by gdlint: `@tool` → `class_name` → `extends` → `##` docs →
    signals → enums → consts → static vars → `@export` → public vars → private vars →
    `@onready` public → `@onready` private → methods. `gdformat` handles whitespace.
-4. **Logic lives in `RefCounted` classes** (`GameRules`, `Wallet`, `PlatformerMotion`) with no
-   scene dependencies so it can be unit-tested. Scenes are thin and integration-tested.
+4. **Logic lives in `RefCounted` classes** (`GameRules`, `Wallet`, `PlatformerMotion`, `Patrol`,
+   `EnemyContact`) with no scene dependencies so it can be unit-tested. Scenes are thin and
+   integration-tested.
 5. **Signal up, call down.** A scene emits signals to whoever owns it and calls methods on
    its children. `GameEvents` (autoload) is only for events that cross screens; it holds no
    state. Don't add state or methods to it.
@@ -78,10 +79,17 @@ Tools must already be installed (`make setup` does it): `godot` 4.7.2 on PATH, `
   under `Level`'s `World` node. Anything the blob should stand on must be on `world`.
 - `Human` (`Area2D`, layer 2, mask 1) emits `eaten` when a `Player` overlaps, then frees
   itself. `Level` turns that into `GameRules.eat_human`.
+- `Strawberry` (`CharacterBody2D`, layer 8 = `enemies`, mask 4 = `world`) walks with
+  `PlatformerMotion` (jump 0), turns via `Patrol` at walls and ledges (a `RayCast2D`), and its
+  `Hitbox` (`Area2D`, mask 1) asks `EnemyContact.is_stomp` on contact: stomp → `stomped`, blob
+  bounces, it frees itself; else `blob_touched`. `Level` pays `stomp_value`, or on a touch
+  freezes the world, resets the `Wallet` to the level's starting money, takes
+  `strawberry_fine`, and after `CAUGHT_PAUSE` emits `GameEvents.blob_caught`; `Main` rebuilds
+  the level with the same wallet. Once caught, nothing in the level pays or finishes.
 - `Hud` listens to `GameEvents.money_changed` / `humans_changed`. `PauseMenu` runs with
   `process_mode = Always`, handles the `pause` action, and toggles `get_tree().paused`.
 - Input actions (`move_left/right`, `jump`, `pause`) are in `project.godot` → `[input]`.
-  Physics layers: 1 `player`, 2 `pickups`, 3 `world` (see `docs/architecture.md`).
+  Physics layers: 1 `player`, 2 `pickups`, 3 `world`, 4 `enemies` (see `docs/architecture.md`).
 - Rendering: `gl_compatibility`, 640×360 viewport, integer scaling, nearest filtering,
   pixel snap — required for the Web export and right for pixel art.
 
@@ -105,6 +113,12 @@ Tools must already be installed (`make setup` does it): `godot` 4.7.2 on PATH, `
   Only `Human` instances belong under `Humans` (anything else is reported and ignored).
   `test_level_flow` pins the human count (`HUMANS_IN_LEVEL`) and checks every human stands on
   ground, so `make test` goes red until you update the count — that is deliberate.
+- **A new ghost strawberry:** duplicate a `*Strawberry` node under `Strawberries` in
+  `game/level/level.tscn`, set `position` (standing on the floor is `y = 338`; on a platform
+  its top minus 6) and `start_direction`. It turns at walls and ledges by itself, needs ~16 px
+  of ground either side of its start (or it jitters), and walks straight through other
+  strawberries (give two on one floor room or opposite directions). `test_level_flow` checks
+  every strawberry starts on ground and is still patrolling that ground 1.5 s later.
 - **A new input action:** add it to `project.godot` `[input]` (copy an existing block; use
   `physical_keycode`), then read it with `Input.get_axis` / `Input.is_action_just_pressed`
   (`Player` shows both).
@@ -134,7 +148,17 @@ Tools must already be installed (`make setup` does it): `godot` 4.7.2 on PATH, `
 - Godot prints **no** level-1 GDScript warnings in headless runs, so a grep-for-warnings
   gate can never work (we tried). A rule you want enforced must be level 2 (error) in
   `project.godot`; there is no "strict mode".
-- One test awaits real time (`test_level_flow.gd`'s wall test, 1.2 s); keep such waits short.
+- Never set `process_mode` (or disable a collider) on a `CollisionObject2D` from inside a
+  physics callback such as `Area2D.body_entered` — Godot logs an error and GUT fails the
+  test. `call_deferred()` it (see `Level._on_strawberry_blob_touched`).
+- Don't name a method `_set`, `_get`, `_ready`-style unless you mean the engine virtual:
+  `Wallet._set(int)` clashed with `Object._set(StringName, Variant)` and broke every
+  dependent script's compile.
+- GUT helpers such as `get_signal_emit_count()` return `Variant`; `:=` cannot infer it, so
+  write the type (`var n: int = ...`) or the whole test file fails to parse.
+- Some tests await real time — walls (1.2 s), strawberry turns (1.7 s), the caught pause
+  (0.8 s each), pop text (0.8 s), strawberries patrolling (1.5 s). Add one only when the
+  behaviour genuinely takes time, and keep it as short as the physics allows.
 
 ## When working with Jason and his son
 

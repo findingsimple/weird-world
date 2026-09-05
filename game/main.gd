@@ -1,7 +1,8 @@
 class_name Main
 extends Node
 ## Entry point (project.godot > run/main_scene). Owns the flow between screens:
-## title -> level -> results -> (level | title). Exactly one screen lives under $Screen.
+## title -> level -> (level again, if the blob was caught | results) -> (level | title).
+## Exactly one screen lives under $Screen.
 ##
 ## Also owns the blob's [Wallet]: money has to outlive a level, so that a ghost strawberry's
 ## fine and the restart that follows do not wipe it. Going back to the title screen starts
@@ -10,9 +11,11 @@ extends Node
 const TITLE_SCENE := preload("res://game/ui/title_screen/title_screen.tscn")
 const RESULTS_SCENE := preload("res://game/ui/results_screen/results_screen.tscn")
 
-## The level to play: its platforms, humans and the blob's start. A new level is a new scene.
+## The level to play: its platforms, humans, strawberries and the blob's start. A new level
+## is a new scene.
 @export var level_scene: PackedScene = preload("res://game/level/level.tscn")
-## The level's numbers (how much a human pays). Swap the resource to tune the same level.
+## The level's numbers: what a human pays, what a stomp pays, what a touch costs. Swap the
+## resource to tune the same level.
 @export var level_config: LevelConfig
 
 var _wallet := Wallet.new()
@@ -22,6 +25,7 @@ var _wallet := Wallet.new()
 
 func _ready() -> void:
 	GameEvents.game_over.connect(_on_game_over)
+	GameEvents.blob_caught.connect(_on_blob_caught)
 	_show_title()
 
 
@@ -42,12 +46,14 @@ func _start_game() -> void:
 	_replace_screen(level)
 
 
-func _show_results(outcome: GameRules.Outcome, money: int) -> void:
+## Shows the results with the wallet's money — the one source of truth, read now rather
+## than from a number that travelled on the bus a frame ago.
+func _show_results(outcome: GameRules.Outcome) -> void:
 	var results: ResultsScreen = RESULTS_SCENE.instantiate()
 	results.retry_pressed.connect(_start_game)
 	results.title_pressed.connect(_show_title)
 	_replace_screen(results)
-	results.show_result(outcome, money)
+	results.show_result(outcome, _wallet.money)
 
 
 ## Frees whatever is showing and adds `screen`. Always un-pauses: no screen should start
@@ -59,6 +65,11 @@ func _replace_screen(screen: Node) -> void:
 	_screen.add_child(screen)
 
 
-func _on_game_over(outcome: GameRules.Outcome, money: int) -> void:
+func _on_game_over(outcome: GameRules.Outcome, _money: int) -> void:
 	# Deferred: game_over can arrive mid-physics-callback, and swapping scenes there is unsafe.
-	_show_results.call_deferred(outcome, money)
+	_show_results.call_deferred(outcome)
+
+
+func _on_blob_caught(_money_left: int) -> void:
+	# The level already reset and fined the shared wallet; just build the level again.
+	_start_game.call_deferred()

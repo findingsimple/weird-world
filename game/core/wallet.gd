@@ -6,7 +6,7 @@ extends RefCounted
 ## Pure logic, unit-tested in tests/unit/core/test_wallet.gd. [GameRules] pays into it;
 ## [Level] forwards its signal to the [GameEventsBus] for the HUD.
 
-## Emitted whenever the amount changes.
+## Emitted whenever the amount actually changes.
 signal money_changed(money: int)
 
 var money: int = 0
@@ -29,5 +29,19 @@ func earn(amount: int) -> void:
 func pay_fine(amount: int) -> void:
 	if amount <= 0:
 		return
-	money = maxi(money - amount, 0)
+	_change_to(maxi(money - amount, 0))
+
+
+## Puts the money back to `amount` — how a level restart forfeits what that attempt earned
+## (see [Level]). Never below zero.
+func reset_to(amount: int) -> void:
+	_change_to(maxi(amount, 0))
+
+
+## Sets the amount and tells listeners — but only if it really changed. (Not named `_set`:
+## that is a Godot built-in for property access.)
+func _change_to(new_money: int) -> void:
+	if new_money == money:
+		return
+	money = new_money
 	money_changed.emit(money)

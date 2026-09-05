@@ -1,6 +1,7 @@
 # 0012 — Hand-placed humans, money, no clock; eating everyone ends the level
 
-- Status: Accepted, 2026-09-05
+- Status: Accepted, 2026-09-05. Its forecast that "lives and losing arrive with Milestone 3"
+  did not come true: the designer chose a fine and a restart instead — see 0013 and 0014.
 
 ## Context and problem statement
 

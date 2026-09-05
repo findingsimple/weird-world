@@ -20,7 +20,9 @@ signal money_changed(money: int)
 ## How many humans are left, out of how many the level started with. Emitted once when the
 ## level starts, then every time a human is eaten.
 signal humans_changed(humans_left: int, humans_total: int)
-## The level ended. `money` is what the blob earned.
+## A ghost strawberry caught the blob: the fine is already paid, and the level restarts.
+signal blob_caught(money_left: int)
+## The level ended. `money` is the blob's total.
 signal game_over(outcome: GameRules.Outcome, money: int)
 ## The game was paused or resumed.
 signal pause_toggled(is_paused: bool)

@@ -49,12 +49,37 @@ func test_the_blob_cannot_go_into_debt() -> void:
 	assert_eq(_wallet.money, 0, "a fine stops at zero (docs/gdd.md)")
 
 
+func test_a_fine_against_an_empty_wallet_changes_nothing_and_says_so() -> void:
+	_wallet.pay_fine(2)
+	assert_eq(_wallet.money, 0)
+	assert_signal_not_emitted(_wallet, "money_changed", "nothing changed, so no signal")
+
+
 func test_a_fine_of_nothing_or_less_changes_nothing() -> void:
 	_wallet.earn(5)
 	_wallet.pay_fine(0)
 	_wallet.pay_fine(-2)
 	assert_eq(_wallet.money, 5)
 	assert_signal_emit_count(_wallet, "money_changed", 1, "only the earning emitted")
+
+
+func test_reset_to_puts_the_money_back_and_emits() -> void:
+	_wallet.earn(9)
+	_wallet.reset_to(4)
+	assert_eq(_wallet.money, 4)
+	assert_signal_emitted_with_parameters(_wallet, "money_changed", [4])
+
+
+func test_reset_to_the_same_amount_is_silent() -> void:
+	_wallet.earn(4)
+	_wallet.reset_to(4)
+	assert_signal_emit_count(_wallet, "money_changed", 1, "only the earning emitted")
+
+
+func test_reset_below_zero_means_zero() -> void:
+	_wallet.earn(4)
+	_wallet.reset_to(-1)
+	assert_eq(_wallet.money, 0)
 
 
 func test_starting_money_is_never_negative() -> void:

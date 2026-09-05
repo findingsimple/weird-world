@@ -74,6 +74,13 @@ func test_landing_zeroes_vertical_velocity() -> void:
 	assert_eq(v.y, 0.0)
 
 
+func test_an_upward_kick_while_on_the_floor_is_kept() -> void:
+	# A stomp bounce sets an upward velocity while the body still counts as on the floor.
+	var kicked := Vector2(0.0, -150.0)
+	var v := _motion.next_velocity(kicked, 0.0, false, true, DT)
+	assert_eq(v.y, -150.0, "the kick survives the frame instead of being zeroed")
+
+
 func test_running_does_not_change_falling() -> void:
 	var v := _motion.next_velocity(Vector2.ZERO, 1.0, false, false, DT)
 	assert_eq(v.x, RUN)

@@ -109,6 +109,20 @@ func test_cannot_jump_again_in_the_air() -> void:
 	assert_gt(_player.velocity.y, rising, "no double jump")
 
 
+func test_feet_are_on_the_floor_when_standing() -> void:
+	await _land()
+	assert_almost_eq(_player.feet_y(), FLOOR_TOP, 0.5)
+
+
+func test_bounce_kicks_the_blob_upward() -> void:
+	await _land()
+	var resting := _player.position
+	_player.bounce()
+	await wait_physics_frames(3)
+	assert_lt(_player.position.y, resting.y, "the blob went up")
+	assert_false(_player.is_on_floor())
+
+
 func test_tunables_drive_the_motion_even_after_ready() -> void:
 	# Values far from the defaults, so a swapped or ignored export shows up as a wrong number.
 	# Set after the player is in the tree: Inspector edits while playing must work too.

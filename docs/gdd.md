@@ -33,7 +33,7 @@ What the player does over and over.
 ```
 run right -> jump a gap -> eat a human (+$) -> dodge or stomp a ghost strawberry -> ...
                                             \-> reach the ghost cake -> stomp it -> level won
-                                            \-> get hit / fall off -> lose a life -> retry
+                                            \-> get hit -> pay a fine -> the level restarts, money kept
 ```
 
 ## Player verbs
@@ -52,18 +52,21 @@ What the blob can *do*.
 | --- | --- | --- |
 | **Blob** (blue, two eyes) | the player | runs, jumps, eats, stomps |
 | **Humans** | the collectable ("coins") | stand around; touching one eats it for `human_value` money |
-| **Ghost strawberry** | the goomba | walks left/right, turns at walls and ledges; stomp from above defeats it, touching its side hurts you |
+| **Ghost strawberry** | the goomba | walks left/right, turns at walls and ledges; stomp from above defeats it, touching its side costs you money and restarts the level |
 | **Ghost cake** | the boss | bigger, waits at the end of the level, takes `boss_health` stomps to defeat |
 
 ## Rules, win and lose
 
-- The blob has `lives` (3).
 - Eating a human pays `human_value` (1) money. Stomping a ghost strawberry pays
   `stomp_value` (2).
-- Touching a ghost strawberry from the side, or falling off the bottom of the level,
-  costs one life and restarts the blob at the level start (or last checkpoint).
+- Touching a ghost strawberry from the side **restarts the level and costs money**: the humans
+  come back, the blob goes back to the start, the money goes back to what it was when the
+  level started, and then `strawberry_fine` is taken. (Decided by the designer, 2026-09-05:
+  "lose money and restart the level". *Interpretation to confirm with him:* "restart" means
+  the attempt's earnings are forfeited too — otherwise getting caught after eating everyone
+  and eating them all again would be a way to earn, not a punishment.)
+- There are **no lives** and no game over. You cannot lose your job, only money.
 - **Win**: stomp the ghost cake `boss_health` (3) times.
-- **Lose**: run out of lives.
 - There is **no clock**. Take your time, eat everyone. (Decided 2026-09-05; a speed
   bonus is a "later" idea, not a rule.)
 - Money carries between levels (it's a job, after all).
@@ -97,9 +100,13 @@ What the blob can *do*.
   ends the level (the ghost cake takes over as the goal in Milestone 4)
 - The template's coins, spawner and clock are gone
 
-**Milestone 3 — ghost strawberries**
+**Milestone 3 — ghost strawberries** (done 2026-09-05)
 
-- Patrol, stomp, hurt, lives
+- Money moved up to the game (`Wallet`, owned by `Main`) so it survives a level restart
+- Two ghost strawberries patrol level 1, turning at walls and ledges; stomp one from above
+  for `stomp_value` ($2); touch one from the side and the world freezes for a beat, the
+  attempt's earnings are forfeited, you pay `strawberry_fine` ($2), and the level restarts
+- A little "+$2" / "−$7" pops where it happened, showing the money that really moved
 
 **Milestone 4 — the ghost cake**
 
@@ -136,5 +143,11 @@ the `Main` node.
   2026-09-05: "Jump is good."** Two steps of 48 px with `jump_velocity 330` / `gravity 980`.
   Those numbers are now the reference; `test_level_flow` fails if a tweak makes a platform
   unreachable.
+- `strawberry_fine` is $2 for now (as much as a stomp earns) and the blob **cannot** go below
+  $0 — both are defaults awaiting the designer's verdict. Debt would be funny ("You owe $3").
+- Does getting caught forfeit what you earned in that attempt (current rule), or keep it?
+  Keeping it makes getting caught on purpose a way to earn. Designer's call.
+- What happens if the blob falls off the bottom of a level? Level 1 has no pit, but a wider
+  level will. (Suggestion: the same as a strawberry — restart and a fine.)
 - Do humans run away when they see a blob? (Funny, but harder. Milestone 2 says: they don't.)
 - What does the blob look like when it's eaten a lot? Bigger? Slower?

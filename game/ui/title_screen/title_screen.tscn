@@ -36,7 +36,7 @@ horizontal_alignment = 1
 [node name="Subtitle" type="Label" parent="CenterContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Eat every human. It's your job!
+text = "Eat every human. It's your job! Mind the ghost strawberries.
 A/D or arrow keys to run, Space to jump. Esc to pause."
 horizontal_alignment = 1
 

@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://game/ui/pop_text/pop_text.gd" id="1_pop"]
+[ext_resource type="Theme" path="res://game/ui/theme/main_theme.tres" id="2_theme"]
+
+[node name="PopText" type="Node2D"]
+z_index = 5
+script = ExtResource("1_pop")
+
+[node name="Label" type="Label" parent="."]
+offset_left = -16.0
+offset_top = -20.0
+offset_right = 16.0
+offset_bottom = -6.0
+theme = ExtResource("2_theme")
+text = "+$0"
+horizontal_alignment = 1

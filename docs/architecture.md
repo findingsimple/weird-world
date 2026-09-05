@@ -21,7 +21,9 @@ Main (game/main.tscn)                     flow: title -> level -> results -> (le
     │   ├── Background                    visual only
     │   ├── World                         Floor, platforms, edge walls: StaticBody2D on layer `world`
     │   ├── Humans                        the hand-placed Human scenes the blob is paid to eat
+    │   ├── Strawberries                  the hand-placed Strawberry scenes in the way
     │   ├── Player                        CharacterBody2D, reads input, owns a PlatformerMotion
+    │   ├── (PopText …)                   "+$2" / "-$2" pops, added and freed as things happen
     │   ├── Hud                           CanvasLayer, listens to GameEvents
     │   └── PauseMenu                     CanvasLayer, process_mode = Always
     └── ResultsScreen                     emits retry_pressed / title_pressed
@@ -40,15 +42,20 @@ because that signal can arrive in the middle of a physics callback.
 | `GameRules` | `game/core/game_rules.gd` | **Pure logic** (`RefCounted`): humans left, win when all are eaten; pays each human into the `Wallet`. Unit-tested. |
 | `Wallet` | `game/core/wallet.gd` | **Pure logic**: the blob's money — `earn`, `pay_fine` (never below $0). Unit-tested. |
 | `PlatformerMotion` | `game/core/platformer_motion.gd` | **Pure logic**: run speed, gravity, jump, fall cap — one `next_velocity()` call per physics frame. Unit-tested. |
-| `LevelConfig` | `game/core/level_config.gd` | `Resource` of tunables (`human_value`). Saved as `game/core/levels/level_01.tres`. |
+| `LevelConfig` | `game/core/level_config.gd` | `Resource` of tunables (`human_value`, `stomp_value`, `strawberry_fine`). Saved as `game/core/levels/level_01.tres`. |
 | `GameEventsBus` | `game/core/game_events.gd` | Autoload `GameEvents`. Signals only, no state. |
 | `Player` | `game/player/player.gd` | `CharacterBody2D`; reads `move_left`/`move_right`/`jump`, asks `PlatformerMotion` for a velocity, `move_and_slide()`. |
 | `Human` | `game/human/human.gd` | `Area2D`; fidgets, emits `eaten` when a `Player` overlaps, frees itself. |
+| `Strawberry` | `game/strawberry/strawberry.gd` | `CharacterBody2D` on `enemies`; walks with `PlatformerMotion`, turns with `Patrol`, hitbox decides via `EnemyContact`, emits `stomped` / `blob_touched`. |
+| `Patrol` | `game/core/patrol.gd` | **Pure logic**: which way to walk; turn at a wall or a ledge. Unit-tested. |
+| `EnemyContact` | `game/core/enemy_contact.gd` | **Pure logic**: stomp or touch, from the blob's feet and vertical velocity. Unit-tested. |
+| `PopText` | `game/ui/pop_text/pop_text.gd` | A floating "+$2" that fades and frees itself. |
 | `Hud` | `game/ui/hud/hud.gd` | Money and humans-left labels bound to the bus. |
 | `TitleScreen`, `ResultsScreen` | `game/ui/...` | Emit navigation signals; contain no game logic. |
 | `PauseMenu` | `game/ui/pause_menu/pause_menu.gd` | Handles the `pause` action, pauses the tree, shows Resume and Title screen; emits `quit_pressed` up to `Level`. |
 
-The logic classes (`GameRules`, `Wallet`, `PlatformerMotion`, `LevelConfig`) are `RefCounted`/`Resource`,
+The logic classes (`GameRules`, `Wallet`, `PlatformerMotion`, `Patrol`, `EnemyContact`,
+`LevelConfig`) are `RefCounted`/`Resource`,
 not nodes. That is deliberate: they run in a unit test in a millisecond with no scene
 tree, and they can be reused unchanged in a 3D version of the game.
 
@@ -61,7 +68,8 @@ Autoloaded as `GameEvents` (`project.godot` → `[autoload]`). Holds no state.
 | `game_started(config: LevelConfig)` | `Level._ready` | (free for your own use: music, analytics, ...) |
 | `money_changed(money: int)` | `Level` (initial value, then on every `Wallet.money_changed`) | `Hud.set_money` |
 | `humans_changed(humans_left: int, humans_total: int)` | `Level` (initial value, then on every `GameRules.humans_changed`) | `Hud.set_humans` |
-| `game_over(outcome: GameRules.Outcome, money: int)` | `Level._on_rules_finished` | `Main._on_game_over` |
+| `blob_caught(money_left: int)` | `Level._on_strawberry_blob_touched`, after the caught pause (wallet already reset and fined) | `Main._on_blob_caught` → rebuilds the level, same wallet |
+| `game_over(outcome: GameRules.Outcome, money: int)` | `Level._on_rules_finished`, `Level._on_pause_menu_quit_pressed` | `Main._on_game_over` (reads the `Wallet` itself; `money` is advisory) |
 | `pause_toggled(is_paused: bool)` | `PauseMenu.set_paused` | (free: dim music, etc.) |
 
 Rule of thumb: add a signal here only when the emitter and the listener live on
@@ -87,11 +95,31 @@ Physics server detects overlap
 
 Every hop is either a signal (up) or a plain method call (down).
 
+## Data flow: meeting a ghost strawberry
+
+```
+Strawberry's Hitbox (Area2D, mask = player) sees the Player body
+  -> EnemyContact.is_stomp(blob.feet_y(), blob.velocity.y, strawberry.top_y(), delta)
+     (falling, and the feet a frame ago were above the top: the overlap is reported a frame late)
+  stomp:  Player.bounce(); Strawberry.stomped.emit(self); queue_free()
+          -> Level._on_strawberry_stomped -> Wallet.earn(stomp_value); PopText "+$2"
+  touch:  Strawberry.blob_touched.emit(self)
+          -> Level._on_strawberry_blob_touched: freeze the blob and the strawberries;
+             Wallet.reset_to(money at level start); Wallet.pay_fine(strawberry_fine);
+             PopText with the money that actually moved ("-$7")
+          -> (CAUGHT_PAUSE later) GameEvents.blob_caught.emit(money_left)
+          -> Main._on_blob_caught -> _start_game (deferred): the level scene is built again
+             with the same Wallet — humans back, blob at the start, this attempt's earnings gone
+  Nothing in the level pays, fines or finishes once the blob is caught (Level.is_live()).
+```
+
 ## Money, time and pausing
 
 - The `Wallet` belongs to `Main`, not to the level: a level is rebuilt on every restart,
-  and money must survive that (a ghost strawberry's fine, Milestone 3). "Play again" keeps
-  the money; the title screen starts a new job with an empty wallet.
+  and money must survive that. Getting caught puts the wallet back to what it held when the
+  level started, then takes the fine — the attempt's earnings are forfeited, so getting
+  caught can never be a way to earn. "Play again" keeps the money; the title screen starts
+  a new job with an empty wallet. The results screen reads the wallet directly.
 - There is no clock: a level ends when the last human is eaten (docs/gdd.md). There are no
   lives and no game over — you cannot lose your job, only money.
 - `PauseMenu` has `process_mode = Always`, so it still receives input when
@@ -114,7 +142,8 @@ Named in `project.godot` → `[layer_names]`. A body is *on* its `collision_laye
 | --- | --- | --- | --- |
 | 1 (1) | `player` | `Player` | `Human` (mask 1) |
 | 2 (2) | `pickups` | `Human` | nobody — an `Area2D` detects, it is not detected |
-| 3 (4) | `world` | floor, platforms and edge walls (`StaticBody2D`) | `Player` (mask 4) |
+| 3 (4) | `world` | floor, platforms and edge walls (`StaticBody2D`) | `Player` (mask 4), `Strawberry` (mask 4), its `LedgeRay` |
+| 4 (8) | `enemies` | `Strawberry` | nobody — its `Hitbox` (mask 1) does the detecting, so the blob is never pushed by it |
 
 Anything solid the blob should stand on goes on `world`. Otherwise it falls straight
 through — the most common "why doesn't my platform work?" answer.

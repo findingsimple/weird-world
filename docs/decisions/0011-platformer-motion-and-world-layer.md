@@ -1,6 +1,8 @@
 # 0011 — Platformer physics in a `RefCounted`, solid ground on a `world` layer
 
-- Status: Accepted, 2026-09-05
+- Status: Accepted, 2026-09-05. Two forecasts below did not come true: there are no lives
+  (0014: a fine and a restart), and the floor branch now cancels *downward* speed only so a
+  stomp bounce survives the frame.
 
 ## Context and problem statement
 

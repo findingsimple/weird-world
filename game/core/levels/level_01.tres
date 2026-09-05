@@ -5,3 +5,5 @@
 [resource]
 script = ExtResource("1_level_config")
 human_value = 1
+stomp_value = 2
+strawberry_fine = 2

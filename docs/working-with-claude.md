@@ -86,10 +86,10 @@ Sized for this codebase. Each one is a few sessions at most.
 - A second level: a new scene with its own platforms and humans, chosen on `Main`.
 
 **Medium (several sessions)**
-- The ghost strawberry (Milestone 3 in `docs/gdd.md`): walks, turns at edges, stomp it
-  from above, lose a life if it touches your side. New `GameRules` lives, a `LOST`
-  outcome that actually happens, new bus signal? Design it first — fill in the GDD
-  before the code.
+- The ghost cake boss (Milestone 4 in `docs/gdd.md`): bigger than a strawberry, takes
+  `boss_health` stomps, and beating it is what ends the level. What does it do between
+  stomps? Design it first — fill in the GDD before the code. (The ghost strawberry is done;
+  ADR 0014 shows the shape: a scene, a `RefCounted` for its brain, signals up to `Level`.)
 - Levels: a second level scene, a level-select screen, `Main` picking the next
   scene after a win.
 - A 3D version of the level, reusing `game/core/` untouched (see

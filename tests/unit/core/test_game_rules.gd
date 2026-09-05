@@ -89,6 +89,14 @@ func test_a_level_with_no_humans_is_finished_before_it_starts() -> void:
 	assert_true(rules.is_finished())
 
 
+func test_a_missing_wallet_is_reported_and_replaced() -> void:
+	var rules := GameRules.new(HUMANS, null)
+	assert_push_error("needs a Wallet")
+	assert_not_null(rules.wallet, "the rules can still run")
+	rules.eat_human(VALUE)
+	assert_eq(rules.wallet.money, VALUE)
+
+
 func test_a_negative_human_count_means_none() -> void:
 	var rules := GameRules.new(-3, _wallet)
 	assert_eq(rules.humans_total, 0)

@@ -39,16 +39,17 @@ func configure(speed: float, jump: float, fall_acceleration: float, max_fall: fl
 ## `input_x` runs from -1 (left) to 1 (right); `jump_pressed` is true only on the frame
 ## the jump action was pressed; `on_floor` comes from CharacterBody2D.is_on_floor().
 ##
-## On the floor, vertical speed is cancelled outright rather than letting gravity pile up
-## against the ground: landings are exact and a jump is only possible from the floor (no
-## double jumps). This assumes flat ground; slopes would want gravity applied every frame.
+## On the floor, downward speed is cancelled rather than letting gravity pile up against the
+## ground, so landings are exact; an upward kick given from outside (a stomp bounce) is kept,
+## so the body leaves the floor next frame. A jump is only possible from the floor (no double
+## jumps). This assumes flat ground; slopes would want gravity applied every frame.
 func next_velocity(
 	velocity: Vector2, input_x: float, jump_pressed: bool, on_floor: bool, delta: float
 ) -> Vector2:
 	var next := velocity
 	next.x = clampf(input_x, -1.0, 1.0) * run_speed
 	if on_floor:
-		next.y = -jump_velocity if jump_pressed else 0.0
+		next.y = -jump_velocity if jump_pressed else minf(velocity.y, 0.0)
 	else:
 		next.y = minf(velocity.y + gravity * delta, max_fall_speed)
 	return next

@@ -29,6 +29,10 @@ var outcome: Outcome = Outcome.IN_PROGRESS
 ## (nobody has connected yet), so the owner checks [method is_finished] after wiring up.
 func _init(humans: int, money_goes_to: Wallet) -> void:
 	wallet = money_goes_to
+	if wallet == null:
+		# Release builds strip assert(); a missing wallet is a bug, but the level must still run.
+		push_error("GameRules needs a Wallet; using a fresh one that nobody else can see")
+		wallet = Wallet.new()
 	humans_total = maxi(humans, 0)
 	humans_left = humans_total
 	if humans_left == 0:

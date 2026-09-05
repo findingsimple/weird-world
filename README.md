@@ -9,8 +9,9 @@ takes on the ghost cake boss. Designed by a kid, built with his dad and Claude C
 **Godot 4.7.2 + GDScript**. The design is in [docs/gdd.md](docs/gdd.md); the original
 concept book is in [docs/design/](docs/design/).
 
-**Where it's at:** Milestone 2 — the blob runs and jumps around one hand-built screen and
-eats every human on it for money. No clock. Next: ghost strawberries (Milestone 3).
+**Where it's at:** Milestone 3 — the blob runs and jumps around one hand-built screen, eats
+every human on it for money, stomps ghost strawberries for more, and pays a fine (and
+restarts) if one catches it. No clock, no lives. Next: the ghost cake boss (Milestone 4).
 
 **Play in the browser:** <https://findingsimple.github.io/weird-world/> — rebuilt and
 published by the Web workflow on every push to `main`. Or `make run` for a native window.
@@ -64,14 +65,15 @@ Want to start *another* game like this one? Use the
 ```
 game/                 The game
   main.tscn/.gd       Screen flow: title → level → results
-  core/               Pure logic + data: PlatformerMotion, GameRules, Wallet, LevelConfig, GameEvents bus
+  core/               Pure logic + data: PlatformerMotion, Patrol, EnemyContact, GameRules, Wallet, LevelConfig, GameEvents bus
   player/             The blob: a CharacterBody2D that asks PlatformerMotion where to go
   human/              A human: an Area2D that gets eaten for money
-  level/              The hand-built level: floor, platforms, walls, humans, the rules and HUD
-  ui/                 HUD, title, results, pause menu, shared theme
+  strawberry/         A ghost strawberry: patrols, gets stomped, or catches the blob
+  level/              The hand-built level: floor, platforms, walls, humans, strawberries, the rules and HUD
+  ui/                 HUD, title, results, pause menu, "+$2" pop text, shared theme
 tests/
-  unit/               Logic tests — no scene tree (PlatformerMotion, GameRules, Wallet, LevelConfig)
-  integration/        Scene tests — real physics, real input (Player, Human, Level, UI, screen flow)
+  unit/               Logic tests — no scene tree (PlatformerMotion, Patrol, EnemyContact, GameRules, Wallet, LevelConfig)
+  integration/        Scene tests — real physics, real input (Player, Human, Strawberry, Level, UI, screen flow)
 addons/gut/           GUT 9.7.1 test framework (vendored, never edited)
 scripts/              setup.sh (developer setup), check_scripts.gd (the compile check)
 docs/                 Design doc and concept book, guides, glossary, architecture decisions
