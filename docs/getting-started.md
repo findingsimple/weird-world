@@ -1,6 +1,6 @@
 # Getting started
 
-Goal: run the example game and get `make ci` green on your machine. Budget about
+Goal: run Weird World and get `make ci` green on your machine. Budget about
 20 minutes, most of it downloading.
 
 ## Prerequisites (macOS)

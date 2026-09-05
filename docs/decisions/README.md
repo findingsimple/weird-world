@@ -10,21 +10,21 @@ tell a deliberate choice from an accident — and change it knowingly.
 `NNNN-short-title.md`:
 
 ```markdown
-# NNNN. Title
+# NNNN — Title
 
-**Status:** Accepted | Superseded by NNNN | Deprecated — YYYY-MM-DD
+- Status: Accepted, YYYY-MM-DD   (or: Superseded by NNNN, YYYY-MM-DD)
 
-## Context
+## Context and problem statement
 What situation or problem made a decision necessary.
 
 ## Decision
-What we chose, in one or two sentences.
+What we chose — numbered points if there are several.
 
 ## Consequences
-What gets easier, what gets harder, what we now have to remember.
+Good / Bad / Remember: what gets easier, what gets harder, what we must not forget.
 
 ## Alternatives considered
-One line each: option — why not.
+One line each: **option** — why not.
 ```
 
 ## Adding one

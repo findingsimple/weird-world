@@ -1,22 +1,28 @@
-# weird-world
+# Weird World
 
 [![CI](https://github.com/findingsimple/weird-world/actions/workflows/ci.yml/badge.svg)](https://github.com/findingsimple/weird-world/actions/workflows/ci.yml)
 [![Web](https://github.com/findingsimple/weird-world/actions/workflows/web.yml/badge.svg)](https://github.com/findingsimple/weird-world/actions/workflows/web.yml)
 [![Release](https://github.com/findingsimple/weird-world/actions/workflows/release.yml/badge.svg)](https://github.com/findingsimple/weird-world/actions/workflows/release.yml)
 
-A professional starting point for 2D games in **Godot 4.7 + GDScript**, built to be
-cloned for every new game: tests, lint, compile checks, CI, browser builds, releases,
-and documentation are all wired up on day one. It ships with a small example game, with tests for
-its rules, physics, UI and screen flow, — **Weird World** — that shows every convention in action.
+A platformer where a hungry blob eats humans for money, stomps ghost strawberries and
+takes on the ghost cake boss. Designed by a kid, built with his dad and Claude Code in
+**Godot 4.7.2 + GDScript**. The design is in [docs/gdd.md](docs/gdd.md); the original
+concept book is in [docs/design/](docs/design/).
 
-**Play the example:** <https://findingsimple.github.io/weird-world/>
+**Where it's at:** Milestone 1 — the blob runs and jumps around one hand-built screen.
+The template's coins and clock are still in until Milestone 2 brings the humans.
+
+**Play in the browser:** the Web build publishes to
+<https://findingsimple.github.io/weird-world/> once GitHub Pages is enabled on the repo
+(it is private for now, so the link is not live yet). Until then: `make run`.
 
 ## Why this exists
 
 Making a game with a kid is the fun part. Setting up a toolchain that catches mistakes,
 runs the tests, builds for the browser and publishes releases is not — and it's the part
-that quietly decides whether a project survives its third weekend. This repo does that
-part once, properly, so each new game starts from a known-good baseline.
+that quietly decides whether a project survives its third weekend. This repo was created
+from [game-scaffolding](https://github.com/findingsimple/game-scaffolding), a template
+that does that part once, properly, so the game started from a known-good baseline.
 
 It is also built for **Claude-assisted development**: everything is text, every rule is
 written down in [CLAUDE.md](CLAUDE.md), and every check runs from one command.
@@ -31,7 +37,8 @@ make run       # play Weird World
 make ci        # version + lint + compile check + tests — exactly what CI runs
 ```
 
-Starting a *new game* from this template? Read [TEMPLATE.md](TEMPLATE.md).
+Want to start *another* game like this one? Use the
+[game-scaffolding](https://github.com/findingsimple/game-scaffolding) template, not this repo.
 
 ## Commands
 
@@ -56,18 +63,19 @@ Starting a *new game* from this template? Read [TEMPLATE.md](TEMPLATE.md).
 ## What's inside
 
 ```
-game/                 The example game (delete or replace when you start yours)
+game/                 The game
   main.tscn/.gd       Screen flow: title → level → results
-  core/               Pure logic + data: GameRules, CoinSpawner, LevelConfig, GameEvents bus
-  player/ coin/       One folder per feature: scene + script + sprite together
-  level/              The round: owns the rules, spawns coins, forwards signals
+  core/               Pure logic + data: PlatformerMotion, GameRules, CoinSpawner, LevelConfig, GameEvents bus
+  player/             The blob: a CharacterBody2D that asks PlatformerMotion where to go
+  level/              The hand-built level: floor, platforms, walls, the round's rules and HUD
+  coin/               The template's pickup — becomes a human in Milestone 2
   ui/                 HUD, title, results, pause menu, shared theme
 tests/
-  unit/               Logic tests — no scene tree (GameRules, CoinSpawner, LevelConfig)
-  integration/        Scene tests — real physics, real input (Player, Coin, HUD, Level flow)
+  unit/               Logic tests — no scene tree (PlatformerMotion, GameRules, CoinSpawner, LevelConfig)
+  integration/        Scene tests — real physics, real input (Player, Level, Coin, UI, screen flow)
 addons/gut/           GUT 9.7.1 test framework (vendored, never edited)
-scripts/              setup.sh, new_game.py (rename the template), check_scripts.gd
-docs/                 Guides, tutorials, glossary, GDD template, architecture decisions
+scripts/              setup.sh, check_scripts.gd, new_game.py (the template's rename script, kept for reference)
+docs/                 Design doc and concept book, guides, glossary, architecture decisions
 .github/workflows/    ci.yml (lint+test), web.yml (GitHub Pages), release.yml (release-please + builds)
 ```
 

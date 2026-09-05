@@ -8,7 +8,7 @@ how to learn from it. Each doc is short and focused; read what you need.
 | [getting-started.md](getting-started.md) | Installing the tools, opening the project, first run, troubleshooting |
 | [first-change.md](first-change.md) | Four small, safe exercises to make your first change to the game |
 | [working-with-claude.md](working-with-claude.md) | How to pair with Claude Code on this repo (parent + kid edition) |
-| [architecture.md](architecture.md) | How the example game is put together: scenes, signals, rules, data flow |
+| [architecture.md](architecture.md) | How the game is put together: scenes, signals, rules, physics layers, data flow |
 | [style-guide.md](style-guide.md) | How GDScript is written here, and what the linter enforces |
 | [testing.md](testing.md) | GUT tests: where they live, how to run them, how to write new ones |
 | [release-and-deploy.md](release-and-deploy.md) | Versioning, releases, exports, GitHub Pages, and bumping Godot |
@@ -22,7 +22,7 @@ how to learn from it. Each doc is short and focused; read what you need.
 ### If you are Jason (or another engineer)
 
 1. `getting-started.md` — get `make ci` green on your machine.
-2. `architecture.md` — the mental model of the example game.
+2. `architecture.md` — the mental model of the game.
 3. `style-guide.md` and `testing.md` — the rules the tooling enforces.
 4. `decisions/` — the reasoning behind the stack, so you can disagree with it knowingly.
 5. `release-and-deploy.md` — when you are ready to ship something.
